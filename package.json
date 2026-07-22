@@ -33,13 +33,8 @@
     "db:migrate:prod": "sequelize-cli db:migrate --env production",
     "db:migrate:undo:all:prod": "sequelize-cli db:migrate:undo:all --env production",
     "db:seed:prod": "sequelize-cli db:seed:all --env production",
-    "db:seed:undo:all:prod": "sequelize-cli db:seed:undo:all --env production",
-    "docker:build": "docker-compose build",
-    "docker:up": "docker-compose up -d",
-    "docker:down": "docker-compose down",
-    "docker:down:clean": "docker-compose down -v",
-    "docker:logs": "docker-compose logs -f backend",
-    "docker:db": "docker-compose exec postgres psql -U postgres -d inzozi"
+    "db:seed:undo:all:prod": "sequelize-cli db:seed:undo:all --env production"
+    
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",

@@ -48,6 +48,8 @@ const production = process.env.DATABASE_URL
           rejectUnauthorized: false 
         } 
       },
+      seederStorage: 'sequelize',
+      seederStorageTableName: 'SequelizeData',
     }
   : {
       username: process.env.PROD_USERNAME || 'postgres',
@@ -57,6 +59,8 @@ const production = process.env.DATABASE_URL
       port: process.env.PROD_PORT ? parseInt(process.env.PROD_PORT, 10) : 5432,
       dialect: 'postgres',
       dialectOptions: {},
+      seederStorage: 'sequelize',
+      seederStorageTableName: 'SequelizeData',
     };
 
 module.exports = {
