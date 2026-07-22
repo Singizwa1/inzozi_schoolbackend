@@ -10,7 +10,7 @@
     "target": "ES2020",           // stable JS features for Node.js
     "module": "node20",        // use "nodenext" if you want pure ESM
     "lib": ["ES2020"],
-    "types": ["node", "jest"],          // enable Node.js types
+    "types": ["node"],          // enable Node.js types
     "esModuleInterop": true,      // allow default import syntax for commonjs modules
    // "forceConsistentCasingInFileNames": true,
 

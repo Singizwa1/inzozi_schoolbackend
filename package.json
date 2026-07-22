@@ -16,9 +16,6 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon src/index.ts",
     "start": "node ./dist/index.js",
-    "test": "cross-env NODE_ENV=test npm run db:migrate:undo:all && npm run db:migrate && npm run db:seed && jest --detectOpenHandles --config jest.config.ts",
-    "coverage": "NODE_ENV=test jest --coverage --config jest.config.ts",
-    "coveralls": "npm run coverage && cat coverage/lcov.info | npx coveralls",
     "build": "tsc && cpx \"src/templates/**/*\" dist/templates",
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",
@@ -34,7 +31,6 @@
     "db:migrate:undo:all:prod": "sequelize-cli db:migrate:undo:all --env production",
     "db:seed:prod": "sequelize-cli db:seed:all --env production",
     "db:seed:undo:all:prod": "sequelize-cli db:seed:undo:all --env production"
-    
   },
   "devDependencies": {
     "@eslint/js": "^9.34.0",
@@ -42,7 +38,6 @@
     "@types/cors": "^2.8.19",
     "@types/ejs": "^3.1.5",
     "@types/express": "^5.0.3",
-    "@types/jest": "^30.0.0",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/multer": "^2.0.0",
     "@types/node": "^24.3.0",
@@ -52,19 +47,16 @@
     "@types/supertest": "^6.0.3",
     "@types/swagger-jsdoc": "^6.0.4",
     "@types/swagger-ui-express": "^4.1.8",
-    "coveralls": "^3.1.1",
     "cpx": "^1.5.0",
     "cross-env": "^10.0.0",
     "eslint": "^9.34.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
     "globals": "^16.3.0",
-    "jest": "^30.0.0",
     "lint-staged": "^16.1.5",
     "nodemon": "^3.1.10",
     "prettier": "^3.6.2",
     "supertest": "^7.1.4",
-    "ts-jest": "^29.4.1",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2",
     "typescript-eslint": "^8.41.0"
