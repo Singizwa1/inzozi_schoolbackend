@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>School Rejection</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; color: #333; }
+    .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
+    .header { background: #dc2626; color: #ffffff; text-align: center; padding: 20px; font-size: 20px; font-weight: bold; }
+    .content { padding: 30px; line-height: 1.6; color: #444; }
+    .footer { background: #f9fafb; text-align: center; font-size: 13px; color: #777; padding: 15px; }
+
+    @media (prefers-color-scheme: dark) {
+      body { background-color: #121212; color: #e5e5e5; }
+      .container { background: #1e1e1e; box-shadow: 0 4px 10px rgba(0,0,0,0.7); }
+      .header { background: #b91c1c; }
+      .content { color: #ddd; }
+      .footer { background: #181818; color: #999; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      School Registration Rejected ❌
+    </div>
+    <div class="content">
+      <p>Hello <strong><%= managerName %></strong>,</p>
+      <p>We regret to inform you that your school <strong><%= schoolName %></strong> registration has been rejected.</p>
+      <p>Rejection Date: <strong><%= rejectedAt.toLocaleString() %></strong></p>
+      <p>Reason for rejection: <strong><%= reason %></strong></p>
+      <p>Please review the reason above and contact the administration for further guidance.</p>
+    </div>
+    <div class="footer">
+      &copy; <%= new Date().getFullYear() %> Inzozi School Platform. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>

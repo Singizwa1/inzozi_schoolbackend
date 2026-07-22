@@ -1,0 +1,127 @@
+
+import { Request, Response } from 'express';
+import {  createStudentApplication,getPendingApplications, approveApplication, rejectApplication } from '../services/studentService';
+import { ResponseService } from '../utils/response';
+import { uploadToCloud } from '../utils/uploadHelper';
+import { IRequestUser } from '../middlewares/authMiddleware';
+
+
+const getUserId = (req: IRequestUser): string => {
+  if (!req.user || !req.user.id) {
+    throw new Error('Unauthorized: User not found');
+  }
+  return req.user.id;
+};
+
+export const submitStudentApplication = async (req: Request, res: Response) => {
+  try {
+    const data = req.body;
+
+    
+    if (req.files) {
+      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+
+      if (files.passportPhoto?.[0]) {
+        data.passportPhoto = await uploadToCloud(files.passportPhoto[0]);
+      }
+      if (files.resultSlip?.[0]) {
+        data.resultSlip = await uploadToCloud(files.resultSlip[0]);
+      }
+      if (files.previousReport?.[0]) {
+        data.previousReport = await uploadToCloud(files.previousReport[0]);
+      }
+      if (files.mitationLetter?.[0]) {
+        data.mitationLetter = await uploadToCloud(files.mitationLetter[0]);
+      }
+    }
+
+    const student = await createStudentApplication(data);
+
+    return ResponseService({
+      data: student,
+      status: 201,
+      success: true,
+      message: 'Student application submitted successfully',
+      res,
+    });
+  } catch (error: any) {
+    console.error('Error submitting student application:', error);
+    return ResponseService({
+      data: error.message || error,
+      status: 500,
+      success: false,
+      message: 'Failed to submit student application',
+      res,
+    });
+  }
+};
+export const fetchPendingApplications = async (req: Request, res: Response) => {
+  try {
+    const managerId = getUserId(req);
+    const applications = await getPendingApplications(managerId);
+
+    return ResponseService({
+      data: applications,
+      status: 200,
+      success: true,
+      message: 'Pending applications fetched successfully',
+      res,
+    });
+  } catch (error: any) {
+    return ResponseService({
+      data: error.message,
+      status: 500,
+      success: false,
+      message: 'Failed to fetch pending applications',
+      res,
+    });
+  }
+};
+export const handleApproveApplication = async (req: Request, res: Response) => {
+  try {
+    const { studentId } = req.body;
+    if (!req.file) throw new Error('Babyeyi document is required');
+
+    const student = await approveApplication(studentId, req.file);
+
+    return ResponseService({
+      data: student,
+      status: 200,
+      success: true,
+      message: 'Application approved and Babyeyi document sent',
+      res,
+    });
+  } catch (error: any) {
+    return ResponseService({
+      data: error.message,
+      status: 500,
+      success: false,
+      message: 'Failed to approve application',
+      res,
+    });
+  }
+};
+export const handleRejectApplication = async (req: Request, res: Response) => {
+  try {
+    const { studentId, reason } = req.body;
+    if (!reason) throw new Error('Rejection reason is required');
+
+    const student = await rejectApplication(studentId, reason);
+
+    return ResponseService({
+      data: student,
+      status: 200,
+      success: true,
+      message: 'Application rejected and parent notified',
+      res,
+    });
+  } catch (error: any) {
+    return ResponseService({
+      data: error.message,
+      status: 500,
+      success: false,
+      message: 'Failed to reject application',
+      res,
+    });
+  }
+};

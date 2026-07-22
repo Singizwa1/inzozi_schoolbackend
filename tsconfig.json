@@ -1,0 +1,45 @@
+{
+  // Visit https://aka.ms/tsconfig to read more about this file
+  "compilerOptions": {
+    // File Layout
+    "rootDir": "./src",
+     "outDir": "./dist",
+
+    // Environment Settings
+     /* Environment */
+    "target": "ES2020",           // stable JS features for Node.js
+    "module": "node20",        // use "nodenext" if you want pure ESM
+    "lib": ["ES2020"],
+    "types": ["node", "jest"],          // enable Node.js types
+    "esModuleInterop": true,      // allow default import syntax for commonjs modules
+   // "forceConsistentCasingInFileNames": true,
+
+    // Other Outputs
+   // "sourceMap": true,
+   // "declaration": true,
+   // "declarationMap": true,
+    "allowJs": true,
+    // Stricter Typechecking Options
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+
+    // Style Options
+    // "noImplicitReturns": true,
+    // "noImplicitOverride": true,
+    // "noUnusedLocals": true,
+    // "noUnusedParameters": true,
+    // "noFallthroughCasesInSwitch": true,
+    // "noPropertyAccessFromIndexSignature": true,
+
+    // Recommended Options
+    "strict": true,
+    
+    //"verbatimModuleSyntax": true,
+   // "isolatedModules": true,
+   // "noUncheckedSideEffectImports": true,
+   // "moduleDetection": "force",
+    "skipLibCheck": true,
+  },
+   "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "eslint.config.mts"]
+}

@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>School Approval</title>
+  <style>
+    body { font-family: Arial, sans-serif; background-color: #f4f6f9; margin: 0; padding: 0; color: #333; }
+    .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); overflow: hidden; }
+    .header { background: #16a34a; color: #ffffff; text-align: center; padding: 20px; font-size: 20px; font-weight: bold; }
+    .content { padding: 30px; line-height: 1.6; color: #444; }
+    .footer { background: #f9fafb; text-align: center; font-size: 13px; color: #777; padding: 15px; }
+
+    @media (prefers-color-scheme: dark) {
+      body { background-color: #121212; color: #e5e5e5; }
+      .container { background: #1e1e1e; box-shadow: 0 4px 10px rgba(0,0,0,0.7); }
+      .header { background: #15803d; }
+      .content { color: #ddd; }
+      .footer { background: #181818; color: #999; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      School Approved ✅
+    </div>
+    <div class="content">
+      <p>Hello <strong><%= managerName %></strong>,</p>
+      <p>Congratulations! Your school <strong><%= schoolName %></strong> has been approved.</p>
+      <p>Approval Date: <strong><%= approvedAt.toLocaleString() %></strong></p>
+      <p>You can now manage your school and start using the platform fully.</p>
+    </div>
+    <div class="footer">
+      &copy; <%= new Date().getFullYear() %> Inzozi School Platform. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
