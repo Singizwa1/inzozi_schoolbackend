@@ -4,6 +4,7 @@ import { ResponseService } from '../utils/response';
 import { uploadToCloud } from '../utils/uploadHelper';
 import { IRequestUser } from '../middlewares/authMiddleware';
 import { getPagedResult, getPagination } from '../utils/pagination';
+import { asString } from '../utils/helper';
 import { profile } from 'console';
 
 
@@ -16,8 +17,10 @@ const getUserId = (req: IRequestUser): string => {
 
 export const updateProfile = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId } = req.params;
+    
     const updatedProfile = req.body; 
+
+    const schoolId = asString(req.params.schoolId);
 
     if (!schoolId) {
       return ResponseService({
@@ -66,7 +69,7 @@ export const getProfile = async (req: IRequestUser, res: Response) => {
   try {
     const {page,limit,offset}=getPagination( parseInt(req.query.page as string)|| 1, parseInt(req.query.limit as string) || 10);
 
-    const { schoolId } = req.params;
+    const schoolId = asString(req.params.schoolId);
 
     if (!schoolId) {
       return ResponseService({
@@ -104,7 +107,7 @@ export const getProfile = async (req: IRequestUser, res: Response) => {
 // SPOTS
 export const createSpot = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId = asString(req.params.schoolId);
     const spotData = req.body;
 
     if (!schoolId) {
@@ -139,7 +142,8 @@ export const createSpot = async (req: IRequestUser, res: Response) => {
 
 export const updateSpot = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId, id: spotId } = req.params;
+    const schoolId = asString(req.params.schoolId);
+    const spotId = asString(req.params.id);
     const updatedSpot = req.body;
 
     if (!schoolId) {
@@ -183,7 +187,7 @@ export const updateSpot = async (req: IRequestUser, res: Response) => {
 
 export const listSpots = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId = asString(req.params.schoolId);
     const {page,limit,offset}=getPagination( parseInt(req.query.page as string)|| 1, parseInt(req.query.limit as string) || 10);
 
     if (!schoolId) {
@@ -219,7 +223,7 @@ export const listSpots = async (req: IRequestUser, res: Response) => {
 // GALLERY
 export const addGallery = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId = asString(req.params.schoolId);
     const galleryData = req.body;
 
     if (!schoolId) {
@@ -269,7 +273,7 @@ export const addGallery = async (req: IRequestUser, res: Response) => {
 
 export const listGallery = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId = asString(req.params.schoolId);
     const { page, limit, offset } = getPagination(
       parseInt(req.query.page as string) || 1,
       parseInt(req.query.limit as string) || 10
@@ -309,7 +313,8 @@ export const listGallery = async (req: IRequestUser, res: Response) => {
 
 export const updateGallery = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId, id: imageId } = req.params;
+    const schoolId = asString(req.params.schoolId);
+    const imageId = asString(req.params.id);
     let updatedData = req.body;
 
     if (!schoolId) {
@@ -360,7 +365,8 @@ export const updateGallery = async (req: IRequestUser, res: Response) => {
 
 export const deleteGallery = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId, id: imageId } = req.params;
+    const schoolId = asString(req.params.schoolId);
+    const imageId = asString(req.params.id);
     if (!schoolId) {
       return ResponseService({
         data: null,
@@ -401,7 +407,7 @@ export const deleteGallery = async (req: IRequestUser, res: Response) => {
 
 export const updateSchoolInfo = async (req: IRequestUser, res: Response) => {
   try {
-       const { schoolId} = req.params;
+       const schoolId = asString(req.params.schoolId);
     let updatedData = req.body;
 
     if (!schoolId) {
@@ -422,7 +428,8 @@ export const updateSchoolInfo = async (req: IRequestUser, res: Response) => {
 };
 export const deleteSchoolSpot = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId, id: spotId } = req.params;
+    const schoolId = asString(req.params.schoolId);
+    const spotId = asString(req.params.id);
     if (!schoolId) {
       return ResponseService({
         data: null,

@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import * as SchoolService from '../services/schoolService';
 import { ResponseService } from '../utils/response';
+import {asString} from '../utils/helper';
 import { uploadToCloud } from '../utils/uploadHelper';
 import { IRequestUser } from '../middlewares/authMiddleware';
 import { getPagedResult, getPagination } from '../utils/pagination';
@@ -55,7 +56,7 @@ export const registerSchool = async (req: IRequestUser, res: Response) => {
  */
 export const approveSchool = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId  = asString(req.params.schoolId);
 
     if (!schoolId) {
       return ResponseService({
@@ -93,7 +94,7 @@ export const approveSchool = async (req: IRequestUser, res: Response) => {
  */
 export const rejectSchool = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId = asString(req.params.schoolId);
     const { reason } = req.body;
 
     if (!schoolId) {
@@ -243,7 +244,7 @@ export const listRejectedSchools = async (req: IRequestUser, res: Response) => {
  */
 export const getSchoolDetails = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId = asString(req.params.schoolId);
 
     if (!schoolId) {
       return ResponseService({
@@ -319,7 +320,7 @@ export const listSchools = async (req: Request, res: Response) => {
 
 export const resubmitSchool = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId = asString(req.params.schoolId);
     const updatedData = req.body;
 
     if (!schoolId) {
@@ -359,7 +360,7 @@ export const resubmitSchool = async (req: IRequestUser, res: Response) => {
 };
 export const deleteSchool = async (req: IRequestUser, res: Response) => {
   try {
-    const { schoolId } = req.params;
+    const schoolId = asString(req.params.schoolId);
     if (!schoolId) {  
       return ResponseService({
         data: null, 

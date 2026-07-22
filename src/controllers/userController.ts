@@ -3,6 +3,7 @@ import { ResponseService } from "../utils/response";
 import { UserService } from "../services/userServices";
 import { CreateSchoolManagerDto } from "../types/userInterface";
 import { IRequestUser } from "../middlewares/authMiddleware";
+import {asString} from '../utils/helper';
 
 export class UserController {
 
@@ -72,7 +73,7 @@ export class UserController {
 
 
   static async getUserById(req: IRequestUser, res: Response) {
-    const { userId } = req.params;
+    const userId = asString(req.params.userId);
     if (!userId) return ResponseService({ data: null, success: false, status: 400, message: "UserId is required", res });
 
     try {
@@ -90,7 +91,7 @@ export class UserController {
   }
 
   static async updateUser(req: IRequestUser, res: Response) {
-    const { userId } = req.params;
+    const userId = asString(req.params.userId);
     if (!userId) return ResponseService({ data: null, success: false, status: 400, message: "UserId is required", res });
 
     try {
@@ -102,7 +103,7 @@ export class UserController {
   }
 
   static async deleteUser(req: IRequestUser, res: Response) {
-    const { userId } = req.params;
+    const userId = asString(req.params.userId);
     if (!userId) return ResponseService({ data: null, success: false, status: 400, message: "UserId is required", res });
 
     try {
@@ -115,7 +116,7 @@ export class UserController {
 
   static async createAdmissionManager(req: IRequestUser, res: Response) {
   try {
-    const { schoolId } = req.params;
+    const schoolId = asString(req.params.schoolId);
 
     
     if (!req.user?.id) {
