@@ -3,7 +3,6 @@ import { AuthService,PasswordResetService} from "../services/AuthService";
 import { ResponseService } from "../utils/response";
 import { IRequestUser } from "../middlewares/authMiddleware";
 import { LoginUserRequest } from "../types/userInterface";
-import { sendEmail } from "../utils/mailer";
 
 const authService = new AuthService();
 

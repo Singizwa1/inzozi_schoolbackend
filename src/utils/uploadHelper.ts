@@ -2,9 +2,6 @@ import { v2 as cloudinary } from 'cloudinary';
 import streamifier from 'streamifier';
 import { config } from 'dotenv';
 
-import { Express } from 'express';
-import { Multer} from 'multer';
-
 config();
 
 
@@ -21,10 +18,14 @@ cloudinary.config({
 });
 
 // Upload helper
-export const uploadToCloud = (file: Express.Multer.File): Promise<string> => {
+export const uploadToCloud = (
+  file: Express.Multer.File,
+  folder: string = 'schools/licenses',
+  resourceType: 'raw' | 'image' = 'raw'
+): Promise<string> => {
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      { folder: 'schools/licenses', resource_type: 'raw' }, 
+      { folder, resource_type: resourceType },
       (error, result) => {
         if (error || !result) return reject(error);
         resolve(result.secure_url);

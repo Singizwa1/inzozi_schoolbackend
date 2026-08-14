@@ -1,11 +1,10 @@
-import { Request, Response } from 'express';
+import { Response } from 'express';
 import * as SchoolService from '../services/schoolService';
 import { ResponseService } from '../utils/response';
 import { uploadToCloud } from '../utils/uploadHelper';
 import { IRequestUser } from '../middlewares/authMiddleware';
-import { getPagedResult, getPagination } from '../utils/pagination';
+import { getPagination } from '../utils/pagination';
 import { asString } from '../utils/helper';
-import { profile } from 'console';
 
 
 const getUserId = (req: IRequestUser): string => {

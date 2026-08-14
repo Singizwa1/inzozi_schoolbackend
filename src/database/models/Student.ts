@@ -1,6 +1,5 @@
 // src/database/models/Student.ts
 import { Sequelize, Model, DataTypes, Optional } from 'sequelize';
-import { School } from './School';
 
 export interface StudentAttributes {
   id: string;
@@ -55,9 +54,6 @@ type StudentCreationAttributes = Optional<
 >;
 
 export class Student extends Model<StudentAttributes, StudentCreationAttributes> implements StudentAttributes {
-  createApplication(arg0: { status: string; }) {
-    throw new Error('Method not implemented.');
-  }
   public id!: string;
   public schoolId!: string;
   public firstName!: string;

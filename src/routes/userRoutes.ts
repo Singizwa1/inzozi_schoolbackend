@@ -3,10 +3,11 @@ import { Router } from "express";
 import { UserController } from "../controllers/userController";
 import { authMiddleware, checkRole } from "../middlewares/authMiddleware";
 import { ValidationMiddleware } from "../middlewares/validationMiddleware";
-import { 
-  createSchoolManagerSchema, 
-  createAdmissionManagerSchema, 
-  updateUserSchema 
+import { uploadImage } from "../middlewares/uploadMiddleware";
+import {
+  createSchoolManagerSchema,
+  createAdmissionManagerSchema,
+  updateUserSchema
 } from "../schema/userSchema";
 
 const router = Router();
@@ -178,7 +179,7 @@ router.delete(
  * @swagger
  * /api/users/{userId}:
  *   put:
- *     summary: "Update user information (Public: self update, Admin: any user, SchoolManager: AdmissionManagers in their school)"
+ *     summary: "Update user information and photo (use 'me' for your own profile; Admin: any user; SchoolManager: AdmissionManagers in their school)"
  *     tags: [User Management]
  *     security:
  *       - bearerAuth: []
@@ -188,13 +189,32 @@ router.delete(
  *         required: true
  *         schema:
  *           type: string
- *           format: uuid
+ *         description: A user's UUID, or the literal "me" for the authenticated user
  *     requestBody:
  *       required: true
  *       content:
- *         application/json:
+ *         multipart/form-data:
  *           schema:
- *             $ref: '#/components/schemas/UpdateUserRequest'
+ *             type: object
+ *             properties:
+ *               firstName:
+ *                 type: string
+ *               lastName:
+ *                 type: string
+ *               email:
+ *                 type: string
+ *               password:
+ *                 type: string
+ *               gender:
+ *                 type: string
+ *                 enum: [Male, Female, Other]
+ *               province:
+ *                 type: string
+ *               district:
+ *                 type: string
+ *               profileImage:
+ *                 type: string
+ *                 format: binary
  *     responses:
  *       200:
  *         description: "User updated successfully"
@@ -206,8 +226,9 @@ router.delete(
 router.put(
   '/users/:userId',
   authMiddleware,
+  uploadImage.single('profileImage'),
   ValidationMiddleware({ type: 'body', schema: updateUserSchema }),
-  UserController.updateUser 
+  UserController.updateUser
 );
 
 

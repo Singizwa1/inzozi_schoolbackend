@@ -136,23 +136,27 @@ export class UserService {
     return user;
   }
 
+  // Hashes password (if present) and applies the update to the user
+  private static async applyUserUpdate(user: User, data: any) {
+    if (data.password) data.password = await hashPassword(data.password);
+    else delete data.password;
+
+    return await user.update(data);
+  }
+
   // Update user
   static async updateUser(requestingUser: any, userId: string, data: any) {
     const user = await User.findByPk(userId);
     if (!user) throw new Error("User not found");
 
+    // Self update
+    if (requestingUser.id === user.id) return await this.applyUserUpdate(user, data);
+
     const requesterRole = await Role.findByPk(requestingUser.role);
     if (!requesterRole) throw new Error("Invalid role");
 
-    // Hash password if updating it
-    if (data.password) data.password = await hashPassword(data.password);
-    else delete data.password;
-
-    // Self update
-    if (requestingUser.id === user.id) return await user.update(data);
-
     // Admin can update anyone
-    if (requesterRole.name === "Admin") return await user.update(data);
+    if (requesterRole.name === "Admin") return await this.applyUserUpdate(user, data);
 
     // SchoolManager can update AdmissionManagers in their school
     if (
@@ -160,7 +164,7 @@ export class UserService {
       user.schoolId === requestingUser.schoolId
     ) {
       const targetRole = await Role.findByPk(user.roleId);
-      if (targetRole?.name === "AdmissionManager") return await user.update(data);
+      if (targetRole?.name === "AdmissionManager") return await this.applyUserUpdate(user, data);
     }
 
     throw new Error("You do not have permission to update this user");

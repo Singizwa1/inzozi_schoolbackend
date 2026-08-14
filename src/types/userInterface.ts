@@ -1,4 +1,4 @@
-import { Response, Request,NextFunction } from "express";
+import { Response, Request } from "express";
 
 
 export interface CreateSchoolManagerDto {

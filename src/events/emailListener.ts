@@ -1,7 +1,6 @@
 
 import { emailEmitter } from "./emailEvent";
 import { sendEmail } from "../utils/mailer";
-import { name } from "ejs";
 
 emailEmitter.on("sendResetCode", async (email: string, code: string) => {
   try {

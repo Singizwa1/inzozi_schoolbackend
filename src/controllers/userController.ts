@@ -4,6 +4,7 @@ import { UserService } from "../services/userServices";
 import { CreateSchoolManagerDto } from "../types/userInterface";
 import { IRequestUser } from "../middlewares/authMiddleware";
 import {asString} from '../utils/helper';
+import { uploadToCloud } from '../utils/uploadHelper';
 
 export class UserController {
 
@@ -71,7 +72,6 @@ export class UserController {
   }
 }
 
-
   static async getUserById(req: IRequestUser, res: Response) {
     const userId = asString(req.params.userId);
     if (!userId) return ResponseService({ data: null, success: false, status: 400, message: "UserId is required", res });
@@ -91,11 +91,21 @@ export class UserController {
   }
 
   static async updateUser(req: IRequestUser, res: Response) {
-    const userId = asString(req.params.userId);
+    if (!req.user?.id) {
+      return ResponseService({ data: null, success: false, status: 401, message: "User not authenticated", res });
+    }
+
+    const rawUserId = asString(req.params.userId);
+    const userId = rawUserId === 'me' ? req.user.id : rawUserId;
     if (!userId) return ResponseService({ data: null, success: false, status: 400, message: "UserId is required", res });
 
     try {
-      const updatedUser = await UserService.updateUser(req.user, userId, req.body);
+      const data = { ...req.body };
+      if (req.file) {
+        data.profileImage = await uploadToCloud(req.file, 'users/profileImages', 'image');
+      }
+
+      const updatedUser = await UserService.updateUser(req.user, userId, data);
       return ResponseService({ data: updatedUser, success: true, status: 200, message: "User updated successfully", res });
     } catch (e: any) {
       return ResponseService({ data: null, success: false, status: 403, message: e.message, res });

@@ -33,3 +33,13 @@ export const updateUserSchema = Joi.object({
 profileImage:Joi.string().optional(),
   schoolId:Joi.string().optional(),
 });
+
+export const updateMeSchema = Joi.object({
+  firstName: Joi.string().optional(),
+  lastName: Joi.string().optional(),
+  email: Joi.string().email().optional(),
+  password: Joi.string().min(6).optional(),
+  gender: Joi.string().valid('Male', 'Female', 'Other').optional(),
+  province: Joi.string().optional(),
+  district: Joi.string().optional(),
+});

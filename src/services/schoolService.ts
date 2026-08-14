@@ -230,7 +230,7 @@ export const resubmitSchool = async (
   return school;
 };
 
-export const updateSchoolProfile = async (schoolId: string, data: IUpdateSchoolProfile,userId:string) => {
+export const updateSchoolProfile = async (schoolId: string, data: IUpdateSchoolProfile,_userId:string) => {
   let profile = await SchoolProfile.findOne({ where: { schoolId } });
 
   if (!profile) {
@@ -258,7 +258,7 @@ export const getSchoolProfile = async (schoolId: string ,limit:number,offset:num
 export const createSchoolSpot = async (
   schoolId: string,
   data: ICreateSchoolSpot,
-  userId: string
+  _userId: string
 ) => {
   const occupiedSpots = data.occupiedSpots ?? 0;
   const registrationOpen = data.registrationOpen ?? true;
@@ -295,7 +295,7 @@ export const createSchoolSpot = async (
 
   return schoolSpot;
 };
-export const updateSchoolSpot = async (schoolId: string, spotId: string, data: IUpdateSchoolSpot,userId:string) => {
+export const updateSchoolSpot = async (schoolId: string, spotId: string, data: IUpdateSchoolSpot,_userId:string) => {
   const spot = await SchoolSpot.findOne({ where: { id: spotId, schoolId } });
   if (!spot) throw new Error('School spot not found');
   return spot.update(data);
@@ -313,7 +313,7 @@ export const listSchoolSpots = async (schoolId: string,limit:number,offset:numbe
   
 };
 
-export const deleteSchoolSpot = async (schoolId: string, spotId: string,userId:string) => {
+export const deleteSchoolSpot = async (schoolId: string, spotId: string,_userId:string) => {
   const spot = await SchoolSpot.findOne({ where: { id: spotId, schoolId } });
   if (!spot) throw new Error('School spot not found');
   await spot.destroy();
@@ -322,7 +322,7 @@ export const deleteSchoolSpot = async (schoolId: string, spotId: string,userId:s
 
 
 
-export const addGalleryImage = async (schoolId: string, data: ICreateSchoolGallery,userId:string) => {
+export const addGalleryImage = async (schoolId: string, data: ICreateSchoolGallery,_userId:string) => {
   return SchoolGallery.create({ ...data, schoolId });
 };
 
@@ -355,13 +355,13 @@ export const listGalleryImages = async (schoolId: string,limit:number,offset:num
 };
 
 
-export const updateGalleryImage = async (schoolId: string, imageId: string, data: Partial<ICreateSchoolGallery>,userId:string) => {
+export const updateGalleryImage = async (schoolId: string, imageId: string, data: Partial<ICreateSchoolGallery>,_userId:string) => {
   const image = await SchoolGallery.findOne({ where: { id: imageId, schoolId } });
   if (!image) throw new Error('Gallery image not found');
   return image.update(data);
 };
  
-export const deleteGalleryImage = async (schoolId: string, imageId: string,userId:string) => {
+export const deleteGalleryImage = async (schoolId: string, imageId: string,_userId:string) => {
   const image = await SchoolGallery.findOne({ where: { id: imageId, schoolId } });
   if (!image) throw new Error('Gallery image not found');
   await image.destroy();
@@ -369,7 +369,7 @@ export const deleteGalleryImage = async (schoolId: string, imageId: string,userI
 };
 
 
-export const updateSchoolInfo = async (schoolId: string, data: SchoolAttributes,userId:string) => {
+export const updateSchoolInfo = async (schoolId: string, data: SchoolAttributes,_userId:string) => {
   const school = await School.findByPk(schoolId);
   if (!school) throw new Error('School not found');
 
@@ -415,7 +415,7 @@ export const searchSchools = async (
   if (academicYear) spotWhere.academicYear = academicYear;
   if (combination) spotWhere.combination = { [Op.contains]: [combination] };
 
-  const { rows, count } = await School.findAndCountAll({
+  const { rows } = await School.findAndCountAll({
     where: schoolWhere,
     include: [
       {
