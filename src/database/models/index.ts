@@ -7,6 +7,8 @@ import { SchoolGallery,SchoolGalleryModel } from './SchoolGallery';
 import { SchoolSpot,SchoolSpotModel } from './SchoolSpot';
 import { Student, StudentModel } from './Student';
 import { Application, ApplicationModel } from './Application';
+import { SubscriptionSetting, SubscriptionSettingModel } from './SubscriptionSetting';
+import { SubscriptionPayment, SubscriptionPaymentModel } from './SubscriptionPayment';
 
 interface Modals {
   Role: typeof Role;
@@ -17,6 +19,8 @@ interface Modals {
   SchoolSpot:typeof SchoolSpot,
   Student: typeof Student;
   Application: typeof Application;
+  SubscriptionSetting: typeof SubscriptionSetting;
+  SubscriptionPayment: typeof SubscriptionPayment;
 
 }
 export const AllModal = (sequelize: Sequelize): Modals => ({
@@ -28,7 +32,9 @@ export const AllModal = (sequelize: Sequelize): Modals => ({
   SchoolSpot:SchoolSpotModel(sequelize),
   Student: StudentModel(sequelize),
   Application: ApplicationModel(sequelize),
+  SubscriptionSetting: SubscriptionSettingModel(sequelize),
+  SubscriptionPayment: SubscriptionPaymentModel(sequelize),
 
 
- 
+
 });

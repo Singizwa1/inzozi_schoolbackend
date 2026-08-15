@@ -9,7 +9,7 @@ export interface SchoolAttributes {
   schoolName: string;
   schoolCode: string;
   schoolCategory?: "REB" | "RTB" | null;
-  schoolLevel?: "Nursery" | "Primary" | "O-Level" | "A-Level" | null;
+  schoolLevel?: "Nursery" | "Primary" | "O-level" | "A-level" | null;
   schoolType?: "Girls" | "Boys" | "Mixed" | null;
   province?: string | null;
   district: string;
@@ -24,6 +24,10 @@ export interface SchoolAttributes {
   userId: string;
   approvedBy?: string | null;
   approvedAt?: Date | null;
+  subscriptionStatus: "trial" | "active" | "expired";
+  trialEndsAt?: Date | null;
+  currentPeriodEnd?: Date | null;
+  reminderSentAt?: Date | null;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
@@ -37,6 +41,10 @@ export interface CreationAttributes
     |"licenseDocument"
     | "approvedBy"
     | "approvedAt"
+    | "subscriptionStatus"
+    | "trialEndsAt"
+    | "currentPeriodEnd"
+    | "reminderSentAt"
     | "createdAt"
     | "updatedAt"
     | "deletedAt"
@@ -47,6 +55,10 @@ export interface CreationAttributes
   status?: "not_registered"|"pending" | "approved" | "rejected";
   approvedBy?: string;
   approvedAt?: Date | null;
+  subscriptionStatus?: "trial" | "active" | "expired";
+  trialEndsAt?: Date | null;
+  currentPeriodEnd?: Date | null;
+  reminderSentAt?: Date | null;
 }
 
 export class School extends Model<SchoolAttributes, CreationAttributes> {
@@ -54,7 +66,7 @@ export class School extends Model<SchoolAttributes, CreationAttributes> {
   public schoolName!: string;
   public schoolCode!: string;
   public schoolCategory?: "REB" | "RTB";
-  public schoolLevel?: "Nursery" | "Primary" | "O-Level" | "A-Level";
+  public schoolLevel?: "Nursery" | "Primary" | "O-level" | "A-level";
   public schoolType?: "Girls" | "Boys" | "Mixed";
   public province?: string;
   public district!: string;
@@ -69,6 +81,10 @@ export class School extends Model<SchoolAttributes, CreationAttributes> {
   public approvedBy?: string | null;
   public rejectedReason?: string | null;
   public approvedAt?: Date | null;
+  public subscriptionStatus!: "trial" | "active" | "expired";
+  public trialEndsAt?: Date | null;
+  public currentPeriodEnd?: Date | null;
+  public reminderSentAt?: Date | null;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public deletedAt?: Date | null;
@@ -108,7 +124,7 @@ export const SchoolModel = (sequelize: Sequelize) => {
         allowNull: true,
       },
       schoolLevel: {
-        type: DataTypes.ENUM("Nursery", "Primary", "O-Level", "A-Level"),
+        type: DataTypes.ENUM("Nursery", "Primary", "O-level", "A-level"),
         allowNull: true,
       },
       schoolType: {
@@ -144,6 +160,14 @@ export const SchoolModel = (sequelize: Sequelize) => {
       approvedAt: { type: DataTypes.DATE, allowNull: true },
       rejectedReason: { type: DataTypes.STRING, allowNull: true },
       licenseDocument: { type: DataTypes.STRING, allowNull: true },
+      subscriptionStatus: {
+        type: DataTypes.ENUM("trial", "active", "expired"),
+        allowNull: false,
+        defaultValue: "trial",
+      },
+      trialEndsAt: { type: DataTypes.DATE, allowNull: true },
+      currentPeriodEnd: { type: DataTypes.DATE, allowNull: true },
+      reminderSentAt: { type: DataTypes.DATE, allowNull: true },
       deletedAt: { type: DataTypes.DATE, allowNull: true },
     },
     {
@@ -157,6 +181,7 @@ export const SchoolModel = (sequelize: Sequelize) => {
         { fields: ["email"], unique: true },
         { fields: ["status"] },
         { fields: ["approvedBy"] },
+        { fields: ["subscriptionStatus"] },
       ],
     }
   );

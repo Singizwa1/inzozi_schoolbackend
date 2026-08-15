@@ -4,6 +4,7 @@ import { Sequelize, Model, DataTypes, Optional } from 'sequelize';
 export interface StudentAttributes {
   id: string;
   schoolId: string;
+  schoolSpotId: string;
   firstName: string;
   middleName?: string;
   lastName: string;
@@ -56,6 +57,7 @@ type StudentCreationAttributes = Optional<
 export class Student extends Model<StudentAttributes, StudentCreationAttributes> implements StudentAttributes {
   public id!: string;
   public schoolId!: string;
+  public schoolSpotId!: string;
   public firstName!: string;
   public middleName?: string;
   public lastName!: string;
@@ -92,6 +94,12 @@ export class Student extends Model<StudentAttributes, StudentCreationAttributes>
       Student.belongsTo(models.School, {
         foreignKey: 'schoolId',
         as: 'school',
+      });
+    }
+    if (models.SchoolSpot) {
+      Student.belongsTo(models.SchoolSpot, {
+        foreignKey: 'schoolSpotId',
+        as: 'spot',
       });
     }
   }
@@ -136,6 +144,11 @@ export const StudentModel = (sequelize: Sequelize) => {
         type: DataTypes.UUID,
         allowNull: false,
         references: { model: 'Schools', key: 'id' }
+      },
+      schoolSpotId: {
+        type: DataTypes.UUID,
+        allowNull: false,
+        references: { model: 'schoolspots', key: 'id' }
       }
     },
     {
@@ -146,13 +159,6 @@ export const StudentModel = (sequelize: Sequelize) => {
       paranoid: true,
     }
   );
-
-  
-  Student.addHook('afterCreate', async (student) => {
-    const s = student as Student;
-    const { Application } = (student.sequelize as any).models;
-    if (Application) await Application.create({ studentId: s.id, status: 'pending' });
-  });
 
   return Student;
 };

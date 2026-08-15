@@ -15,6 +15,7 @@ export interface UserAttributes {
   roleId: string;
   profileImage?: string | null;
   schoolId?: string | null;
+  mustChangePassword?: boolean;
   createdAt?: Date;
   updatedAt?: Date;
   deletedAt?: Date | null;
@@ -22,7 +23,7 @@ export interface UserAttributes {
 
 
 export interface UserCreationAttributes
-  extends Optional<UserAttributes, "id" | "profileImage" |'province' |"schoolId" | "createdAt" | "updatedAt" | "deletedAt"> {}
+  extends Optional<UserAttributes, "id" | "profileImage" |'province' |"schoolId" | "mustChangePassword" | "createdAt" | "updatedAt" | "deletedAt"> {}
 
 
 export class User
@@ -40,6 +41,7 @@ export class User
   public roleId!: string;
   public profileImage?: string | null;
   public schoolId?: string | null;
+  public mustChangePassword?: boolean;
   public readonly createdAt!: Date;
   public readonly updatedAt!: Date;
   public readonly deletedAt!: Date | null;
@@ -111,7 +113,12 @@ User.init(
     },
     schoolId: {
       type: DataTypes.UUID,
-      allowNull: true, 
+      allowNull: true,
+    },
+    mustChangePassword: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
     },
     deletedAt:{
         type:DataTypes.DATE,

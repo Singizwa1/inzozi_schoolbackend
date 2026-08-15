@@ -407,6 +407,7 @@ export const SchoolSearch = async (req: Request, res: Response): Promise<Respons
       combination: queryFilters.combination ? String(queryFilters.combination) : undefined,
       academicYear: queryFilters.academicYear ? String(queryFilters.academicYear) : undefined,
       minAvailableSpots: queryFilters.minAvailableSpots ? parseInt(String(queryFilters.minAvailableSpots)) : undefined,
+      studentType: queryFilters.studentType ? String(queryFilters.studentType) : undefined,
     };
 
     const result = await SchoolService.searchSchools(limit, offset, page, filters);

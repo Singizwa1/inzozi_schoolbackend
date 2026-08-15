@@ -71,10 +71,11 @@ export class AuthService {
 
     const responseData: any = {
       user: {
-        
+
         email: user.email,
         name:user.firstName + ' ' + user.lastName,
         roleName: user.role.name,
+        mustChangePassword: user.mustChangePassword ?? false,
       },
       token,
     };
@@ -140,6 +141,7 @@ export class PasswordResetService {
     const user = await User.findOne({ where: { email } });
     if (!user) throw new Error("User not found");
     user.password = await hashPassword(newPassword);
+    user.mustChangePassword = false;
     await user.save();
 
     await redis.del(sessionKey);

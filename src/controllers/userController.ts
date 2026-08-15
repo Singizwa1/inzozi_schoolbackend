@@ -151,7 +151,7 @@ export class UserController {
     }
 
     
-    const newUser = await UserService.createAdmissionManager(schoolId,req.body,req.user);
+    const newUser = await UserService.createAdmissionManager(schoolId,req.body,req.user.id);
             
 
     return ResponseService({

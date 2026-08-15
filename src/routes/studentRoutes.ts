@@ -5,6 +5,9 @@ import { submitStudentApplication,fetchPendingApplications,
   handleRejectApplication } from '../controllers/studentController';
 import { upload } from '../middlewares/uploadMiddleware';
 import { authMiddleware,checkRole } from '../middlewares/authMiddleware';
+import { requireActiveSubscription } from '../middlewares/subscriptionMiddleware';
+import { ValidationMiddleware } from '../middlewares/validationMiddleware';
+import { createStudentSchema } from '../schema/studentSchema';
 
 const router = Router();
 
@@ -36,12 +39,17 @@ const studentFileFields = upload.fields([
  *               $ref: '#/components/schemas/StudentResponseSchema'
  */
 
-router.post('/students/apply', studentFileFields, submitStudentApplication);
+router.post(
+  '/students/apply',
+  studentFileFields,
+  ValidationMiddleware({ type: 'body', schema: createStudentSchema }),
+  submitStudentApplication
+);
 /**
  * @swagger
  * /api/students/applications/pending:
  *   get:
- *     summary: Get all pending student applications (SchoolManager)
+ *     summary: Get all pending student applications (SchoolManager or AdmissionManager)
  *     tags: [Students]
  *     security:
  *       - bearerAuth: []
@@ -54,7 +62,7 @@ router.post('/students/apply', studentFileFields, submitStudentApplication);
  *               $ref: '#/components/schemas/PendingApplicationsResponseSchema'
  */
 
-router.get('/students/applications/pending', authMiddleware,checkRole(['SchoolManager']), fetchPendingApplications);
+router.get('/students/applications/pending', authMiddleware,checkRole(['SchoolManager', 'AdmissionManager']), requireActiveSubscription, fetchPendingApplications);
 
 /**
  * @swagger
@@ -88,7 +96,8 @@ router.get('/students/applications/pending', authMiddleware,checkRole(['SchoolMa
 router.put(
   '/students/:studentId/approve',
   authMiddleware,
-  checkRole(['SchoolManager']),
+  checkRole(['SchoolManager', 'AdmissionManager']),
+  requireActiveSubscription,
   upload.single('babyeyiDocument'),
   handleApproveApplication
 );
@@ -121,6 +130,6 @@ router.put(
  *             schema:
  *               $ref: '#/components/schemas/StudentResponseSchema'
  */
-router.put('/students/:studentId/reject', authMiddleware,checkRole(['SchoolManager']), handleRejectApplication);
+router.put('/students/:studentId/reject', authMiddleware,checkRole(['SchoolManager', 'AdmissionManager']), requireActiveSubscription, handleRejectApplication);
 
 export default router;

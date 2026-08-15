@@ -13,7 +13,7 @@ export const SchoolRegisterSchema = Joi.object<ISchoolRegister>({
   cell: Joi.string().optional(),
   village: Joi.string().optional(),
   schoolCategory: Joi.string().valid('REB', 'RTB').optional(),
-  schoolLevel: Joi.string().valid('Nursery', 'Primary', 'O-Level', 'A-Level').optional(),
+  schoolLevel: Joi.string().valid('Nursery', 'Primary', 'O-level', 'A-level').optional(),
   schoolType: Joi.string().valid('Girls', 'Boys', 'Mixed').optional(),
 });
 
@@ -80,7 +80,7 @@ export const updateSchoolInfoSchema = Joi.object({
   schoolName: Joi.string().optional(),
   schoolCode: Joi.string().optional(),
   schoolCategory: Joi.string().valid('REB', 'RTB').optional().allow(null),
-  schoolLevel: Joi.string().valid('Nursery', 'Primary', 'O-Level', 'A-Level').optional().allow(null),
+  schoolLevel: Joi.string().valid('Nursery', 'Primary', 'O-level', 'A-level').optional().allow(null),
   schoolType: Joi.string().valid('Girls','Boys','Mixed').optional().allow(null),
   province: Joi.string().optional().allow(null),
   district: Joi.string().optional(),

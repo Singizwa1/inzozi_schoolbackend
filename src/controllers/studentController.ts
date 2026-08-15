@@ -16,23 +16,27 @@ const getUserId = (req: IRequestUser): string => {
 export const submitStudentApplication = async (req: Request, res: Response) => {
   try {
     const data = req.body;
+    const files = (req.files as { [fieldname: string]: Express.Multer.File[] }) || {};
 
-    
-    if (req.files) {
-      const files = req.files as { [fieldname: string]: Express.Multer.File[] };
+    if (!files.passportPhoto?.[0]) {
+      return ResponseService({
+        data: null,
+        status: 400,
+        success: false,
+        message: 'Passport photo is required',
+        res,
+      });
+    }
 
-      if (files.passportPhoto?.[0]) {
-        data.passportPhoto = await uploadToCloud(files.passportPhoto[0]);
-      }
-      if (files.resultSlip?.[0]) {
-        data.resultSlip = await uploadToCloud(files.resultSlip[0]);
-      }
-      if (files.previousReport?.[0]) {
-        data.previousReport = await uploadToCloud(files.previousReport[0]);
-      }
-      if (files.mitationLetter?.[0]) {
-        data.mitationLetter = await uploadToCloud(files.mitationLetter[0]);
-      }
+    data.passportPhoto = await uploadToCloud(files.passportPhoto[0]);
+    if (files.resultSlip?.[0]) {
+      data.resultSlip = await uploadToCloud(files.resultSlip[0]);
+    }
+    if (files.previousReport?.[0]) {
+      data.previousReport = await uploadToCloud(files.previousReport[0]);
+    }
+    if (files.mitationLetter?.[0]) {
+      data.mitationLetter = await uploadToCloud(files.mitationLetter[0]);
     }
 
     const student = await createStudentApplication(data);
@@ -48,7 +52,7 @@ export const submitStudentApplication = async (req: Request, res: Response) => {
     console.error('Error submitting student application:', error);
     return ResponseService({
       data: error.message || error,
-      status: 500,
+      status: 400,
       success: false,
       message: 'Failed to submit student application',
       res,
@@ -77,12 +81,12 @@ export const fetchPendingApplications = async (req: Request, res: Response) => {
     });
   }
 };
-export const handleApproveApplication = async (req: Request, res: Response) => {
+export const handleApproveApplication = async (req: IRequestUser, res: Response) => {
   try {
-    const { studentId } = req.body;
+    const { studentId } = req.params;
     if (!req.file) throw new Error('Babyeyi document is required');
 
-    const student = await approveApplication(studentId, req.file);
+    const student = await approveApplication(studentId as string, req.file, getUserId(req));
 
     return ResponseService({
       data: student,
@@ -101,12 +105,13 @@ export const handleApproveApplication = async (req: Request, res: Response) => {
     });
   }
 };
-export const handleRejectApplication = async (req: Request, res: Response) => {
+export const handleRejectApplication = async (req: IRequestUser, res: Response) => {
   try {
-    const { studentId, reason } = req.body;
+    const { studentId } = req.params;
+    const { reason } = req.body;
     if (!reason) throw new Error('Rejection reason is required');
 
-    const student = await rejectApplication(studentId, reason);
+    const student = await rejectApplication(studentId as string, reason, getUserId(req));
 
     return ResponseService({
       data: student,

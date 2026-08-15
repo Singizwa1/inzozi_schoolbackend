@@ -2,12 +2,13 @@ import i18n from 'i18next';
 import fs from 'fs';
 import path from 'path';
 
+export const SUPPORTED_LANGUAGES = ['en', 'fr', 'rw'];
+
 // Load translation files
 const loadLocales = () => {
   const locales: Record<string, { translation: any }> = {};
-  const localeDirs = ['en', 'fr', 'rw']; 
 
-  localeDirs.forEach(lang => {
+  SUPPORTED_LANGUAGES.forEach(lang => {
     const filePath = path.join(__dirname, 'locales', lang, 'translation.json');
     if (fs.existsSync(filePath)) {
       locales[lang] = {

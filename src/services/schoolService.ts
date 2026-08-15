@@ -7,7 +7,8 @@ import { emailEmitter } from '../events/emailEvent';
 import { SchoolProfile } from '../database/models/SchoolProfile';
 import { SchoolGallery } from '../database/models/SchoolGallery';
 import { SchoolSpot } from '../database/models/SchoolSpot';
-import { Op } from 'sequelize';
+import { Op, where as sequelizeWhere, literal } from 'sequelize';
+import { startTrial } from './subscriptionService';
 
 
 export const registerSchool = async (userId: string, data: ISchoolRegister) => {
@@ -34,8 +35,9 @@ export const approveSchool = async (schoolId: string, adminId: string) => {
     school.approvedBy = adminId;
     school.approvedAt = new Date();
     await school.save({ transaction: t });
+    await startTrial(school, t);
 
-    
+
     const manager = await User.findByPk(school.userId, { transaction: t });
     if (!manager) throw new Error('Manager not found');
 
@@ -159,20 +161,20 @@ export const getApprovedSchools = async (
   page: number
 ) => {
   const { rows, count } = await School.findAndCountAll({
-    where: { status: 'approved' },
+    where: { status: 'approved', subscriptionStatus: { [Op.ne]: 'expired' } },
     limit,
     offset,
     order: [['createdAt', 'DESC']],
     include: [
       {
         model: SchoolProfile,
-        as: 'profile', 
+        as: 'profile',
         attributes: [
           'profilePhoto',
           'mission',
           'vision',
           'foundedYear'
-         
+
         ]
       }
     ]
@@ -402,27 +404,36 @@ export const searchSchools = async (
   page: number,
   filters: SearchFilters
 ) => {
-  const { district, schoolType, schoolLevel, schoolCategory, yearOfStudy, combination, academicYear, minAvailableSpots } = filters;
+  const { district, schoolType, schoolLevel, schoolCategory, yearOfStudy, combination, academicYear, minAvailableSpots, studentType } = filters;
 
-  const schoolWhere: any = { status: 'approved' };
+  const schoolWhere: any = { status: 'approved', subscriptionStatus: { [Op.ne]: 'expired' } };
   if (district) schoolWhere.district = district;
   if (schoolType) schoolWhere.schoolType = schoolType;
   if (schoolLevel) schoolWhere.schoolLevel = schoolLevel;
   if (schoolCategory) schoolWhere.schoolCategory = schoolCategory;
 
+  // A school only qualifies if it has at least one spot matching these conditions
   const spotWhere: any = {};
-  if (yearOfStudy) spotWhere.yearOfStudy = yearOfStudy;
+
+  if (yearOfStudy) spotWhere.yearofstudy = yearOfStudy;
   if (academicYear) spotWhere.academicYear = academicYear;
   if (combination) spotWhere.combination = { [Op.contains]: [combination] };
+  if (studentType) spotWhere.studentType = studentType;
+  if (minAvailableSpots) {
+    spotWhere[Op.and as any] = sequelizeWhere(
+      literal('"spots"."totalSpots" - "spots"."occupiedSpots"'),
+      { [Op.gte]: minAvailableSpots }
+    );
+  }
 
-  const { rows } = await School.findAndCountAll({
+  const { rows, count } = await School.findAndCountAll({
     where: schoolWhere,
     include: [
       {
         model: SchoolSpot,
         as: 'spots',
         where: spotWhere,
-        required: Object.keys(spotWhere).length > 0,
+        required: true,
       },
     ],
     limit,
@@ -431,28 +442,13 @@ export const searchSchools = async (
     order: [['createdAt', 'DESC']],
   });
 
-  
-  const filteredSchools = rows
-  .map((school) => {
-    
-    const spots = (school as any).spots.filter((spot: any) => {
-      const availableSpots = spot.totalSpots - spot.occupiedSpots;
-      return minAvailableSpots ? availableSpots >= minAvailableSpots : true;
-    });
-
-    return {
-      ...school.get({ plain: true }),
-      spots,
-    };
-  })
-  .filter((school) => school.spots.length > 0);
-
+  const schools = rows.map((school) => school.get({ plain: true }));
 
   return {
-    schools: filteredSchools,
-    total: filteredSchools.length,
+    schools,
+    total: count,
     page,
     limit,
-    totalPages: Math.ceil(filteredSchools.length / limit),
+    totalPages: Math.ceil(count / limit),
   };
 };

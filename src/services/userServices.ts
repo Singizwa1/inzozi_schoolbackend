@@ -24,13 +24,14 @@ export class UserService {
   static async createAdmissionManager(
   schoolId: string,
   data: CreateAdmissionManagerDto,
-  currentUser: { id?: string; role?: string; schoolId?: string }
+  actingUserId: string
 ): Promise<User> {
-  if (currentUser.role !== "SchoolManager") {
-    throw new Error("Only School Managers can create an Admission Manager");
-  }
+  // Role membership is already enforced by the checkRole(['SchoolManager']) route
+  // middleware; here we only need to verify this manager owns *this* school.
+  const manager = await User.findByPk(actingUserId);
+  if (!manager) throw new Error("User not found");
 
-  if (currentUser.schoolId !== schoolId) {
+  if (manager.schoolId !== schoolId) {
     throw new Error("You are not authorized to create Admission Managers for this school");
   }
 
@@ -45,6 +46,7 @@ export class UserService {
     password: hashedPassword,
     roleId: role.id,
     schoolId,
+    mustChangePassword: true,
   });
 
   const school = await School.findByPk(schoolId);
@@ -60,11 +62,18 @@ export class UserService {
 }
 
   
+  // requestingUser comes from the JWT payload, which never carries schoolId,
+  // so we resolve the acting user's real schoolId from the DB when needed.
+  private static async resolveSchoolId(userId: string): Promise<string | null> {
+    const user = await User.findByPk(userId);
+    return user?.schoolId ?? null;
+  }
+
   static async getAllUsers(requestingUser: any) {
     const requesterRole = await Role.findByPk(requestingUser.role);
     if (!requesterRole) throw new Error("Invalid role");
 
-    
+
     if (requesterRole.name === "Admin") {
       return await User.findAll({
         include: [
@@ -74,9 +83,12 @@ export class UserService {
       });
     }
 
-    
+
     if (requesterRole.name === "SchoolManager") {
-      const school = await School.findByPk(requestingUser.schoolId);
+      const requesterSchoolId = await this.resolveSchoolId(requestingUser.id);
+      if (!requesterSchoolId) throw new Error("You are not linked to a school");
+
+      const school = await School.findByPk(requesterSchoolId);
       if (!school || school.status !== "approved") {
         throw new Error("Your school is not approved yet. Action blocked.");
       }
@@ -86,7 +98,7 @@ export class UserService {
 
       return await User.findAll({
         where: {
-          schoolId: requestingUser.schoolId,
+          schoolId: requesterSchoolId,
           roleId: admissionRole.id,
         },
         include: [
@@ -127,7 +139,8 @@ export class UserService {
 
     
     if (requesterRole.name === "SchoolManager") {
-      const school = await School.findByPk(requestingUser.schoolId);
+      const requesterSchoolId = await this.resolveSchoolId(requestingUser.id);
+      const school = requesterSchoolId ? await School.findByPk(requesterSchoolId) : null;
       if (!school || school.status !== "approved") {
         throw new Error("Your school is not approved yet. Action blocked.");
       }
@@ -138,8 +151,12 @@ export class UserService {
 
   // Hashes password (if present) and applies the update to the user
   private static async applyUserUpdate(user: User, data: any) {
-    if (data.password) data.password = await hashPassword(data.password);
-    else delete data.password;
+    if (data.password) {
+      data.password = await hashPassword(data.password);
+      data.mustChangePassword = false;
+    } else {
+      delete data.password;
+    }
 
     return await user.update(data);
   }
@@ -159,12 +176,12 @@ export class UserService {
     if (requesterRole.name === "Admin") return await this.applyUserUpdate(user, data);
 
     // SchoolManager can update AdmissionManagers in their school
-    if (
-      requesterRole.name === "SchoolManager" &&
-      user.schoolId === requestingUser.schoolId
-    ) {
-      const targetRole = await Role.findByPk(user.roleId);
-      if (targetRole?.name === "AdmissionManager") return await this.applyUserUpdate(user, data);
+    if (requesterRole.name === "SchoolManager") {
+      const requesterSchoolId = await this.resolveSchoolId(requestingUser.id);
+      if (requesterSchoolId && user.schoolId === requesterSchoolId) {
+        const targetRole = await Role.findByPk(user.roleId);
+        if (targetRole?.name === "AdmissionManager") return await this.applyUserUpdate(user, data);
+      }
     }
 
     throw new Error("You do not have permission to update this user");
@@ -185,9 +202,13 @@ export class UserService {
       return true;
     }
 
+    const requesterSchoolId =
+      requesterRole.name === "SchoolManager" ? await this.resolveSchoolId(requestingUser.id) : null;
+
     if (
       requesterRole.name === "SchoolManager" &&
-      userToDelete.schoolId === requestingUser.schoolId &&
+      requesterSchoolId &&
+      userToDelete.schoolId === requesterSchoolId &&
       targetRole?.name === "AdmissionManager"
     ) {
       await userToDelete.destroy();

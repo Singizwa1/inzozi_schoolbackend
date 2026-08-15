@@ -10,7 +10,7 @@ export interface ISchoolRegister {
   cell?: string;
   village?: string;
   schoolCategory?: 'REB' | 'RTB';
-  schoolLevel?: 'Nursery' | 'Primary' | 'O-Level' | 'A-Level';
+  schoolLevel?: 'Nursery' | 'Primary' | 'O-level' | 'A-level';
   schoolType?: 'Girls' | 'Boys' | 'Mixed';
 }
 
@@ -82,7 +82,8 @@ export interface SearchFilters {
   schoolLevel?: string | undefined;
   schoolCategory?: string | undefined;
   yearOfStudy?: string | undefined;
-  combination?: string | undefined; 
+  combination?: string | undefined;
   academicYear?: string | undefined;
-  minAvailableSpots?: number | undefined; 
+  minAvailableSpots?: number | undefined;
+  studentType?: string | undefined;
 }

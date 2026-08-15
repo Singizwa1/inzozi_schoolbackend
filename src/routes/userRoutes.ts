@@ -4,6 +4,7 @@ import { UserController } from "../controllers/userController";
 import { authMiddleware, checkRole } from "../middlewares/authMiddleware";
 import { ValidationMiddleware } from "../middlewares/validationMiddleware";
 import { uploadImage } from "../middlewares/uploadMiddleware";
+import { requireActiveSubscription } from "../middlewares/subscriptionMiddleware";
 import {
   createSchoolManagerSchema,
   createAdmissionManagerSchema,
@@ -70,6 +71,7 @@ router.post(
   '/users/:schoolId/admission-manager',
   authMiddleware,
   checkRole(['SchoolManager']),
+  requireActiveSubscription,
   ValidationMiddleware({ type: 'body', schema: createAdmissionManagerSchema }),
   UserController.createAdmissionManager
 );

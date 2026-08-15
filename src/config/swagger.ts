@@ -419,11 +419,11 @@ CreateAdmissionManagerResponse: {
       example: 'REB', 
       nullable: true 
     },
-    schoolLevel: { 
-      type: 'string', 
-      enum: ['Nursery', 'Primary', 'O-Level', 'A-Level'], 
-      example: 'Primary', 
-      nullable: true 
+    schoolLevel: {
+      type: 'string',
+      enum: ['Nursery', 'Primary', 'O-level', 'A-level'],
+      example: 'Primary',
+      nullable: true
     },
     schoolType: { 
       type: 'string', 
@@ -475,6 +475,7 @@ CreateAdmissionManagerResponse: {
   CreateStudentSchema : {
   type: 'object',
   required: [
+    'schoolSpotId',
     'firstName',
     'lastName',
     'gender',
@@ -494,6 +495,7 @@ CreateAdmissionManagerResponse: {
   ],
   properties: {
     schoolId: { type: 'string', format: 'uuid', example: 'c1b7f2d0-1234-4c56-8ef0-123456abcdef' },
+    schoolSpotId: { type: 'string', format: 'uuid', example: 'd2c8f3e1-2345-4d67-9f01-234567bcdef0' },
     firstName: { type: 'string', example: 'John' },
     middleName: { type: 'string', example: 'Doe' },
     lastName: { type: 'string', example: 'Smith' },

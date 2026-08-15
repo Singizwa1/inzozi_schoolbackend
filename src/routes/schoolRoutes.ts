@@ -6,6 +6,7 @@ import { SchoolRegisterSchema, RejectSchoolSchema,CreateSchoolGallerySchema,Crea
 import * as SchoolController from '../controllers/schoolController';
 import * as SchoolEntitiesController from  '../controllers/schoolEntitiesController'
 import { upload } from '../middlewares/uploadMiddleware';
+import { requireActiveSubscription } from '../middlewares/subscriptionMiddleware';
 
 const router = Router();
 
@@ -150,6 +151,11 @@ router.patch(
  *         in: query
  *         schema:
  *           type: integer
+ *       - name: studentType
+ *         in: query
+ *         schema:
+ *           type: string
+ *           enum: [newcomer, transfer]
  *       - name: limit
  *         in: query
  *         schema:
@@ -349,6 +355,7 @@ router.put(
   '/schools/:schoolId',
   authMiddleware,
   checkRole(['SchoolManager']),
+  requireActiveSubscription,
   ValidationMiddleware({ type: 'body', schema: updateSchoolInfoSchema }),
   SchoolEntitiesController.updateSchoolInfo
 );
@@ -493,6 +500,7 @@ router.put(
   '/schools/:schoolId/profile',
   authMiddleware,
   checkRole(['SchoolManager']),
+  requireActiveSubscription,
   upload.single('profilePhoto'),
   ValidationMiddleware({ type: 'body', schema: UpdateSchoolProfileSchema }),
   SchoolEntitiesController.updateProfile
@@ -526,6 +534,7 @@ router.post(
   '/schools/:schoolId/spots',
   authMiddleware,
   checkRole(['SchoolManager', 'AdmissionManager']),
+  requireActiveSubscription,
   ValidationMiddleware({ type: 'body', schema: CreateSchoolSpotSchema }),
   SchoolEntitiesController.createSpot
 );
@@ -563,6 +572,7 @@ router.put(
   '/schools/:schoolId/spots/:id',
   authMiddleware,
   checkRole(['SchoolManager', 'AdmissionManager']),
+  requireActiveSubscription,
   SchoolEntitiesController.updateSpot
 );
 
@@ -629,6 +639,7 @@ router.delete(
   '/schools/:schoolId/spots/:id',
   authMiddleware,
   checkRole(['SchoolManager', 'AdmissionManager']),
+  requireActiveSubscription,
   SchoolEntitiesController.deleteSchoolSpot
 );
 
@@ -661,6 +672,7 @@ router.post(
   '/schools/:schoolId/gallery',
   authMiddleware,
   checkRole(['SchoolManager']),
+  requireActiveSubscription,
   upload.single('imageUrl'),
   ValidationMiddleware({ type: 'body', schema: CreateSchoolGallerySchema }),
   SchoolEntitiesController.addGallery
@@ -746,6 +758,7 @@ router.put(
   '/schools/:schoolId/gallery/:id',
   authMiddleware,
   checkRole(['SchoolManager']),
+  requireActiveSubscription,
   upload.single('imageUrl'),
   SchoolEntitiesController.updateGallery
 );
@@ -787,6 +800,7 @@ router.delete(
   '/schools/:schoolId/gallery/:id',
   authMiddleware,
   checkRole(['SchoolManager']),
+  requireActiveSubscription,
   SchoolEntitiesController.deleteGallery
 );
 
