@@ -29,6 +29,9 @@
       <p>Congratulations! Your school <strong><%= schoolName %></strong> has been approved.</p>
       <p>Approval Date: <strong><%= approvedAt.toLocaleString() %></strong></p>
       <p>You can now manage your school and start using the platform fully.</p>
+      <p style="margin-top:20px;">
+        <a href="<%= loginUrl %>" style="display:inline-block; background:#16a34a; color:#ffffff; text-decoration:none; font-weight:bold; padding:12px 24px; border-radius:6px;">Go to your dashboard</a>
+      </p>
     </div>
     <div class="footer">
       &copy; <%= new Date().getFullYear() %> Inzozi School Platform. All rights reserved.

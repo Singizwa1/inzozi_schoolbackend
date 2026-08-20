@@ -7,6 +7,9 @@ import { User } from '../database/models/User';
 import { initiateCashin } from '../utils/paypackClient';
 import { sendEmail } from '../utils/mailer';
 
+const FRONTEND_URL = (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, '');
+const settingsUrl = `${FRONTEND_URL}/schoolAdmin/settings`;
+
 const addMonths = (date: Date, months: number): Date => {
   const result = new Date(date);
   result.setMonth(result.getMonth() + months);
@@ -163,6 +166,7 @@ export const runNightlySubscriptionSweep = async (): Promise<void> => {
             schoolName: school.schoolName,
             daysRemaining,
             endDate,
+            settingsUrl,
           });
         } catch (err) {
           console.error('Failed to send subscription reminder email:', err);

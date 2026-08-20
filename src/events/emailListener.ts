@@ -2,13 +2,19 @@
 import { emailEmitter } from "./emailEvent";
 import { sendEmail } from "../utils/mailer";
 
+const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
+const loginUrl = `${FRONTEND_URL}/login`;
+const resetUrl = `${FRONTEND_URL}/reset`;
+const trackUrl = (code: string) => `${FRONTEND_URL}/track?ref=${encodeURIComponent(code)}`;
+const applicationsUrl = `${FRONTEND_URL}/schoolAdmin/application`;
+
 emailEmitter.on("sendResetCode", async (email: string, code: string) => {
   try {
     await sendEmail(
       email,
       "Password Reset Request",
       "resetPassword",
-      { resetCode: code }
+      { resetCode: code, resetUrl }
     );
     console.log(`Password reset email sent to ${email}`);
   } catch (err) {
@@ -26,7 +32,8 @@ emailEmitter.on("schoolApproved", async (manager: { email: string; firstName: st
         managerName: manager.firstName,
         schoolName: school.schoolName,
         approvedAt: school.approvedAt,
-      } 
+        loginUrl,
+      }
     );
     console.log(`School approval email sent to ${manager.email}`);
   } catch (err) {
@@ -50,6 +57,7 @@ emailEmitter.on(
           schoolName: school.schoolName,
           rejectedAt: school.approvedAt,
           reason,
+          loginUrl,
         }
       );
       console.log(`School rejection email sent to ${manager.email}`);
@@ -68,7 +76,8 @@ emailEmitter.on("admissionManagerCreated", async(payload:{email:string,name:stri
         name:payload.name,
         schoolName:payload.schoolName,
         password:payload.password,
-        email:payload.email
+        email:payload.email,
+        loginUrl,
       }
     )
     console.log(`Admission Manager account email sent to ${payload.email}`);
@@ -85,6 +94,7 @@ emailEmitter.on('newApplication', async ({ parentEmail, studentName, schoolName,
       studentName,
       schoolName,
       trackingCode,
+      trackUrl: trackUrl(trackingCode),
     });
   } catch (err) {
     console.error('Error sending parent email:', err);
@@ -96,31 +106,32 @@ emailEmitter.on('notifyManager', async ({ managerEmail, studentName, schoolName 
     await sendEmail(managerEmail, 'New Student Application', 'managerNotification', {
       studentName,
       schoolName,
+      applicationsUrl,
     });
   } catch (err) {
     console.error('Error sending manager email:', err);
   }
 });
-emailEmitter.on('studentApplicationApproved', async ({ parentEmail, studentName, babyeyiUrl }) => {
+emailEmitter.on('studentApplicationApproved', async ({ parentEmail, studentName, babyeyiUrl, trackingCode }) => {
   try {
     await sendEmail(
       parentEmail,
       'Your student application has been approved!',
       'studentApproved', // ejs template
-      { studentName, babyeyiUrl }
+      { studentName, babyeyiUrl, trackUrl: trackUrl(trackingCode) }
     );
     console.log(`Approved email sent to ${parentEmail}`);
   } catch (err) {
     console.error('Error sending approved email:', err);
   }
 });
-emailEmitter.on('studentApplicationRejected', async ({ parentEmail, studentName, reason }) => {
+emailEmitter.on('studentApplicationRejected', async ({ parentEmail, studentName, reason, trackingCode }) => {
   try {
     await sendEmail(
       parentEmail,
       'Your student application has been rejected',
-      'studentRejected', 
-      { studentName, reason }
+      'studentRejected',
+      { studentName, reason, trackUrl: trackUrl(trackingCode) }
     );
     console.log(`Rejection email sent to ${parentEmail}`);
   } catch (err) {

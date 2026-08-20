@@ -310,6 +310,14 @@ export const createSchoolSpot = async (
   data: ICreateSchoolSpot,
   _userId: string
 ) => {
+  const school = await School.findByPk(schoolId);
+  if (!school) throw new Error('School not found');
+  if (school.schoolLevel?.length && !school.schoolLevel.includes(data.level)) {
+    throw new Error(
+      `This school is not registered for ${data.level}. Add it under "Levels offered" in the school profile first.`
+    );
+  }
+
   const occupiedSpots = data.occupiedSpots ?? 0;
   const registrationOpen = data.registrationOpen ?? true;
 
@@ -348,6 +356,16 @@ export const createSchoolSpot = async (
 export const updateSchoolSpot = async (schoolId: string, spotId: string, data: IUpdateSchoolSpot,_userId:string) => {
   const spot = await SchoolSpot.findOne({ where: { id: spotId, schoolId } });
   if (!spot) throw new Error('School spot not found');
+
+  if (data.level) {
+    const school = await School.findByPk(schoolId);
+    if (school?.schoolLevel?.length && !school.schoolLevel.includes(data.level)) {
+      throw new Error(
+        `This school is not registered for ${data.level}. Add it under "Levels offered" in the school profile first.`
+      );
+    }
+  }
+
   return spot.update(data);
 };
 
@@ -472,7 +490,7 @@ export const searchSchools = async (
   if (schoolName) schoolWhere.schoolName = { [Op.iLike]: `%${schoolName}%` };
   if (district) schoolWhere.district = { [Op.iLike]: district };
   if (schoolType) schoolWhere.schoolType = normalizeEnum(schoolType, SCHOOL_TYPES);
-  if (schoolLevel) schoolWhere.schoolLevel = normalizeEnum(schoolLevel, SCHOOL_LEVELS);
+  if (schoolLevel) schoolWhere.schoolLevel = { [Op.contains]: [normalizeEnum(schoolLevel, SCHOOL_LEVELS)] };
   if (schoolCategory) schoolWhere.schoolCategory = normalizeEnum(schoolCategory, SCHOOL_CATEGORIES);
 
   // A school only qualifies if it has at least one spot matching these conditions

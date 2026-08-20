@@ -30,6 +30,9 @@
         <strong><%= daysRemaining %></strong> day<%= daysRemaining === 1 ? '' : 's' %>,
         on <strong><%= endDate.toLocaleDateString() %></strong>.</p>
       <p>To avoid any interruption to your school's access, please renew your subscription before then.</p>
+      <p style="margin-top:20px;">
+        <a href="<%= settingsUrl %>" style="display:inline-block; background:#d97706; color:#ffffff; text-decoration:none; font-weight:bold; padding:12px 24px; border-radius:6px;">Renew subscription</a>
+      </p>
     </div>
     <div class="footer">
       &copy; <%= new Date().getFullYear() %> Inzozi School Platform. All rights reserved.

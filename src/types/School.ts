@@ -10,7 +10,7 @@ export interface ISchoolRegister {
   cell?: string;
   village?: string;
   schoolCategory?: 'REB' | 'RTB';
-  schoolLevel?: 'Nursery' | 'Primary' | 'O-level' | 'A-level';
+  schoolLevel?: ('Nursery' | 'Primary' | 'O-level' | 'A-level')[];
   schoolType?: 'Girls' | 'Boys' | 'Mixed';
 }
 

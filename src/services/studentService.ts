@@ -155,6 +155,7 @@ export const approveApplication = async (studentId: string, babyeyiFile: Express
     parentEmail: student.representerEmail,
     studentName: `${student.firstName} ${student.lastName}`,
     babyeyiUrl,
+    trackingCode: student.trackingCode,
   });
 
   return student;
@@ -181,6 +182,7 @@ export const rejectApplication = async (studentId: string, reason: string, manag
     parentEmail: student.representerEmail,
     studentName: `${student.firstName} ${student.lastName}`,
     reason,
+    trackingCode: student.trackingCode,
   });
 
   return student;

@@ -30,6 +30,9 @@
       <p>Rejection Date: <strong><%= rejectedAt.toLocaleString() %></strong></p>
       <p>Reason for rejection: <strong><%= reason %></strong></p>
       <p>Please review the reason above and contact the administration for further guidance.</p>
+      <p style="margin-top:20px;">
+        <a href="<%= loginUrl %>" style="display:inline-block; background:#dc2626; color:#ffffff; text-decoration:none; font-weight:bold; padding:12px 24px; border-radius:6px;">Log in to your account</a>
+      </p>
     </div>
     <div class="footer">
       &copy; <%= new Date().getFullYear() %> Inzozi School Platform. All rights reserved.

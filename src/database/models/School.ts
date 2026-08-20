@@ -9,7 +9,7 @@ export interface SchoolAttributes {
   schoolName: string;
   schoolCode: string;
   schoolCategory?: "REB" | "RTB" | null;
-  schoolLevel?: "Nursery" | "Primary" | "O-level" | "A-level" | null;
+  schoolLevel?: ("Nursery" | "Primary" | "O-level" | "A-level")[] | null;
   schoolType?: "Girls" | "Boys" | "Mixed" | null;
   province?: string | null;
   district: string;
@@ -66,7 +66,7 @@ export class School extends Model<SchoolAttributes, CreationAttributes> {
   public schoolName!: string;
   public schoolCode!: string;
   public schoolCategory?: "REB" | "RTB";
-  public schoolLevel?: "Nursery" | "Primary" | "O-level" | "A-level";
+  public schoolLevel?: ("Nursery" | "Primary" | "O-level" | "A-level")[];
   public schoolType?: "Girls" | "Boys" | "Mixed";
   public province?: string;
   public district!: string;
@@ -124,7 +124,7 @@ export const SchoolModel = (sequelize: Sequelize) => {
         allowNull: true,
       },
       schoolLevel: {
-        type: DataTypes.ENUM("Nursery", "Primary", "O-level", "A-level"),
+        type: DataTypes.ARRAY(DataTypes.ENUM("Nursery", "Primary", "O-level", "A-level")),
         allowNull: true,
       },
       schoolType: {
