@@ -58,14 +58,14 @@ emailEmitter.on(
     }
   }
 );
-emailEmitter.on("admissionManagerCreated", async(payload:{email:string,firstName:string,password:string,schoolName:string})=>{
+emailEmitter.on("admissionManagerCreated", async(payload:{email:string,name:string,password:string,schoolName:string})=>{
   try{
     await sendEmail(
       payload.email,
       "Your Admission Manager Account Details",
-      "admissionManagerCreated",
+      "admissionManager",
       {
-        name:payload.firstName,
+        name:payload.name,
         schoolName:payload.schoolName,
         password:payload.password,
         email:payload.email
@@ -79,11 +79,12 @@ emailEmitter.on("admissionManagerCreated", async(payload:{email:string,firstName
 );
 
 
-emailEmitter.on('newApplication', async ({ parentEmail, studentName, schoolName }) => {
+emailEmitter.on('newApplication', async ({ parentEmail, studentName, schoolName, trackingCode }) => {
   try {
-    await sendEmail(parentEmail, 'Application Received', 'newtApplication', {
+    await sendEmail(parentEmail, 'Application Received', 'newApplication', {
       studentName,
       schoolName,
+      trackingCode,
     });
   } catch (err) {
     console.error('Error sending parent email:', err);

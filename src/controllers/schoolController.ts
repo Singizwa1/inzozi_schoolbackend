@@ -139,6 +139,38 @@ export const rejectSchool = async (req: IRequestUser, res: Response) => {
 };
 
 /**
+ * Reassign a school to a different SchoolManager (Admin only)
+ */
+export const reassignManager = async (req: IRequestUser, res: Response) => {
+  try {
+    const schoolId = asString(req.params.schoolId);
+    const { newManagerId } = req.body;
+
+    if (!schoolId) {
+      return ResponseService({ data: null, status: 400, success: false, message: 'School ID is required', res });
+    }
+
+    const school = await SchoolService.reassignSchoolManager(schoolId, newManagerId);
+
+    return ResponseService({
+      data: school,
+      status: 200,
+      success: true,
+      message: 'School reassigned successfully',
+      res,
+    });
+  } catch (error: any) {
+    return ResponseService({
+      data: null,
+      status: 400,
+      success: false,
+      message: error.message || 'Failed to reassign school',
+      res,
+    });
+  }
+};
+
+/**
  * List pending schools (Admin)
  */
 export const listPendingSchools = async (req: IRequestUser, res: Response) => {
@@ -399,6 +431,7 @@ export const SchoolSearch = async (req: Request, res: Response): Promise<Respons
 
     
     const filters: SearchFilters = {
+      schoolName: queryFilters.schoolName ? String(queryFilters.schoolName) : undefined,
       district: queryFilters.district ? String(queryFilters.district) : undefined,
       schoolType: queryFilters.schoolType ? String(queryFilters.schoolType) : undefined,
       schoolLevel: queryFilters.schoolLevel ? String(queryFilters.schoolLevel) : undefined,

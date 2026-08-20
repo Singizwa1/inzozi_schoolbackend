@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { authMiddleware, checkRole } from '../middlewares/authMiddleware';
 import { ValidationMiddleware } from '../middlewares/validationMiddleware';
-import { SchoolRegisterSchema, RejectSchoolSchema,CreateSchoolGallerySchema,CreateSchoolSpotSchema,updateSchoolInfoSchema,UpdateSchoolProfileSchema} from '../schema/school';
+import { SchoolRegisterSchema, RejectSchoolSchema,CreateSchoolGallerySchema,CreateSchoolSpotSchema,updateSchoolInfoSchema,UpdateSchoolProfileSchema,ReassignManagerSchema} from '../schema/school';
 import * as SchoolController from '../controllers/schoolController';
 import * as SchoolEntitiesController from  '../controllers/schoolEntitiesController'
 import { upload } from '../middlewares/uploadMiddleware';
@@ -110,12 +110,59 @@ router.patch(
 
 /**
  * @swagger
+ * /api/schools/{schoolId}/reassign-manager:
+ *   patch:
+ *     summary: Reassign a school to a different SchoolManager (Admin only)
+ *     tags: [Schools]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: schoolId
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *           format: uuid
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [newManagerId]
+ *             properties:
+ *               newManagerId:
+ *                 type: string
+ *                 format: uuid
+ *     responses:
+ *       200:
+ *         description: School reassigned successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/SchoolResponse'
+ */
+router.patch(
+  '/schools/:schoolId/reassign-manager',
+  authMiddleware,
+  checkRole(['Admin']),
+  ValidationMiddleware({ type: 'body', schema: ReassignManagerSchema }),
+  SchoolController.reassignManager
+);
+
+/**
+ * @swagger
  * /api/schools/search:
  *   get:
  *     summary: Search schools with filters
  *     tags: [Schools]
  *     security: []   # 👈 correctly indented here
  *     parameters:
+ *       - name: schoolName
+ *         in: query
+ *         schema:
+ *           type: string
+ *         description: Partial, case-insensitive match on school name
  *       - name: district
  *         in: query
  *         schema:

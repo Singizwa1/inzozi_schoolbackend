@@ -1,4 +1,4 @@
-'use strict';
+  'use strict';
 
 /** @type {import('sequelize-cli').Migration} */
 module.exports = {
@@ -38,7 +38,7 @@ module.exports = {
       district: {
         type: Sequelize.STRING,
         allowNull: false,
-      },
+      },  
       sector: {
         type: Sequelize.STRING,
         allowNull: true,

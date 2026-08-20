@@ -1,6 +1,6 @@
 
 import { Request, Response } from 'express';
-import {  createStudentApplication,getPendingApplications, approveApplication, rejectApplication } from '../services/studentService';
+import {  createStudentApplication,getPendingApplications, approveApplication, rejectApplication, trackApplication } from '../services/studentService';
 import { ResponseService } from '../utils/response';
 import { uploadToCloud } from '../utils/uploadHelper';
 import { IRequestUser } from '../middlewares/authMiddleware';
@@ -55,6 +55,28 @@ export const submitStudentApplication = async (req: Request, res: Response) => {
       status: 400,
       success: false,
       message: 'Failed to submit student application',
+      res,
+    });
+  }
+};
+export const handleTrackApplication = async (req: Request, res: Response) => {
+  try {
+    const { code } = req.params;
+    const result = await trackApplication(code as string);
+
+    return ResponseService({
+      data: result,
+      status: 200,
+      success: true,
+      message: 'Application status fetched successfully',
+      res,
+    });
+  } catch (error: any) {
+    return ResponseService({
+      data: null,
+      status: 404,
+      success: false,
+      message: error.message || 'Application not found',
       res,
     });
   }

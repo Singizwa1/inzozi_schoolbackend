@@ -20,6 +20,10 @@ export const SchoolRegisterSchema = Joi.object<ISchoolRegister>({
 export const RejectSchoolSchema = Joi.object<IRejectSchool>({
   reason: Joi.string().required(),
 });
+
+export const ReassignManagerSchema = Joi.object({
+  newManagerId: Joi.string().uuid().required(),
+});
 export const UpdateSchoolProfileSchema = Joi.object({
   description: Joi.string().optional(),
   mission: Joi.string().optional(),

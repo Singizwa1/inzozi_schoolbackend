@@ -1,5 +1,6 @@
 import { School } from '../database/models/School';
 import { User } from '../database/models/User';
+import { Role } from '../database/models/Roles';
 import { ISchoolRegister,IUpdateSchoolProfile,ICreateSchoolGallery,ICreateSchoolSpot,IUpdateSchoolSpot ,SearchFilters} from '../types/School';
 import { sequelize } from '../database';
 import { SchoolAttributes } from '../database/models/School';
@@ -61,11 +62,54 @@ export const rejectSchool = async (schoolId: string, adminId: string, reason: st
   school.approvedAt = new Date();
   await school.save();
 
- const manager = await User.findByPk(school.userId);
-  if (!manager) throw new Error('Manager not found');
-
-  emailEmitter.emit("schoolRejected", manager, school, reason);
+ // Rejection is a school-level action; don't block it just because the
+ // registering manager's account was later deleted - just skip the email.
+ const manager = await User.findByPk(school.userId, { paranoid: false });
+  if (manager) {
+    emailEmitter.emit("schoolRejected", manager, school, reason);
+  }
   return school;
+};
+
+/**
+ * Reassign a school to a different SchoolManager (Admin only) - e.g. when the
+ * original manager's account was deleted and the school is left orphaned.
+ */
+export const reassignSchoolManager = async (schoolId: string, newManagerId: string) => {
+  return sequelize.transaction(async (t) => {
+    const school = await School.findByPk(schoolId, { transaction: t });
+    if (!school) throw new Error('School not found');
+
+    const newManager = await User.findByPk(newManagerId, { transaction: t });
+    if (!newManager) throw new Error('User not found');
+
+    const role = await Role.findByPk(newManager.roleId, { transaction: t });
+    if (!role || role.name !== 'SchoolManager') {
+      throw new Error('The new manager must have the SchoolManager role');
+    }
+
+    if (newManager.schoolId && newManager.schoolId !== schoolId) {
+      throw new Error('This user is already managing a different school');
+    }
+
+    const previousManagerId = school.userId;
+
+    school.userId = newManagerId;
+    await school.save({ transaction: t });
+
+    newManager.schoolId = schoolId;
+    await newManager.save({ transaction: t });
+
+    if (previousManagerId && previousManagerId !== newManagerId) {
+      const previousManager = await User.findByPk(previousManagerId, { transaction: t, paranoid: false });
+      if (previousManager && previousManager.schoolId === schoolId) {
+        previousManager.schoolId = null;
+        await previousManager.save({ transaction: t });
+      }
+    }
+
+    return school;
+  });
 };
 
 /**
@@ -76,8 +120,9 @@ export const getSchoolById = async (id: string) => {
     include: [
       {
         model: User,
-        as: 'SchoolManager', 
+        as: 'SchoolManager',
         attributes: ['id', 'firstName', 'lastName', 'email', 'district', 'profileImage'],
+        paranoid: false,
       },
     ],
   });
@@ -102,24 +147,27 @@ export const getSchools = async (
         model: User,
         as: 'SchoolManager',
         attributes: ['id', 'firstName', 'lastName', 'email'],
+        // Keep this visible for admin oversight even if the account was later deleted
+        paranoid: false,
       },
       {
         model: User,
         as: 'ApprovedByAdmin',
         attributes: ['id', 'firstName', 'lastName', 'email'],
+        paranoid: false,
       },
-    
-       
+
+
       {
         model: SchoolProfile,
-        as: 'profile', 
+        as: 'profile',
         attributes: [
           'profilePhoto',
           'mission',
           'vision',
           'description',
           'foundedYear'
-          
+
         ]
       }
     ],
@@ -398,27 +446,42 @@ export const deleteSchool = async (schoolId: string) => {
   return true;
 };
 
+// schoolType/schoolLevel/schoolCategory/studentType are Postgres ENUM columns,
+// so they need an exact value in the declared casing - ILIKE doesn't apply
+// cleanly to enums. Rather than fail a search because someone typed
+// "mixed" instead of "Mixed", resolve to the canonical casing when a
+// case-insensitive match exists; otherwise fall through to the raw value
+// (a genuinely invalid filter should still correctly return no results).
+const normalizeEnum = <T extends string>(value: string, options: readonly T[]): string =>
+  options.find((o) => o.toLowerCase() === value.toLowerCase()) ?? value;
+
+const SCHOOL_TYPES = ['Girls', 'Boys', 'Mixed'] as const;
+const SCHOOL_CATEGORIES = ['REB', 'RTB'] as const;
+const SCHOOL_LEVELS = ['Nursery', 'Primary', 'O-level', 'A-level'] as const;
+const STUDENT_TYPES = ['newcomer', 'transfer'] as const;
+
 export const searchSchools = async (
   limit: number,
   offset: number,
   page: number,
   filters: SearchFilters
 ) => {
-  const { district, schoolType, schoolLevel, schoolCategory, yearOfStudy, combination, academicYear, minAvailableSpots, studentType } = filters;
+  const { schoolName, district, schoolType, schoolLevel, schoolCategory, yearOfStudy, combination, academicYear, minAvailableSpots, studentType } = filters;
 
   const schoolWhere: any = { status: 'approved', subscriptionStatus: { [Op.ne]: 'expired' } };
-  if (district) schoolWhere.district = district;
-  if (schoolType) schoolWhere.schoolType = schoolType;
-  if (schoolLevel) schoolWhere.schoolLevel = schoolLevel;
-  if (schoolCategory) schoolWhere.schoolCategory = schoolCategory;
+  if (schoolName) schoolWhere.schoolName = { [Op.iLike]: `%${schoolName}%` };
+  if (district) schoolWhere.district = { [Op.iLike]: district };
+  if (schoolType) schoolWhere.schoolType = normalizeEnum(schoolType, SCHOOL_TYPES);
+  if (schoolLevel) schoolWhere.schoolLevel = normalizeEnum(schoolLevel, SCHOOL_LEVELS);
+  if (schoolCategory) schoolWhere.schoolCategory = normalizeEnum(schoolCategory, SCHOOL_CATEGORIES);
 
   // A school only qualifies if it has at least one spot matching these conditions
   const spotWhere: any = {};
 
-  if (yearOfStudy) spotWhere.yearofstudy = yearOfStudy;
-  if (academicYear) spotWhere.academicYear = academicYear;
+  if (yearOfStudy) spotWhere.yearofstudy = { [Op.iLike]: yearOfStudy };
+  if (academicYear) spotWhere.academicYear = { [Op.iLike]: academicYear };
   if (combination) spotWhere.combination = { [Op.contains]: [combination] };
-  if (studentType) spotWhere.studentType = studentType;
+  if (studentType) spotWhere.studentType = normalizeEnum(studentType, STUDENT_TYPES);
   if (minAvailableSpots) {
     spotWhere[Op.and as any] = sequelizeWhere(
       literal('"spots"."totalSpots" - "spots"."occupiedSpots"'),
@@ -434,6 +497,11 @@ export const searchSchools = async (
         as: 'spots',
         where: spotWhere,
         required: true,
+      },
+      {
+        model: SchoolProfile,
+        as: 'profile',
+        attributes: ['profilePhoto', 'mission', 'vision', 'description', 'foundedYear'],
       },
     ],
     limit,

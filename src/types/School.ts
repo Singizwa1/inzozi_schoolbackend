@@ -77,6 +77,7 @@ export interface ICreateSchoolGallery {
 }
 
 export interface SearchFilters {
+  schoolName?: string | undefined;
   district?: string | undefined;
   schoolType?: string | undefined;
   schoolLevel?: string | undefined;

@@ -3,6 +3,7 @@ import { Sequelize, Model, DataTypes, Optional } from 'sequelize';
 
 export interface StudentAttributes {
   id: string;
+  trackingCode: string;
   schoolId: string;
   schoolSpotId: string;
   firstName: string;
@@ -56,6 +57,7 @@ type StudentCreationAttributes = Optional<
 
 export class Student extends Model<StudentAttributes, StudentCreationAttributes> implements StudentAttributes {
   public id!: string;
+  public trackingCode!: string;
   public schoolId!: string;
   public schoolSpotId!: string;
   public firstName!: string;
@@ -113,6 +115,7 @@ export const StudentModel = (sequelize: Sequelize) => {
         defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
       },
+      trackingCode: { type: DataTypes.STRING(8), allowNull: false, unique: true },
       firstName: { type: DataTypes.STRING, allowNull: false },
       middleName: { type: DataTypes.STRING, allowNull: true },
       lastName: { type: DataTypes.STRING, allowNull: false },

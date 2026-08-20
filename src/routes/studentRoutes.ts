@@ -2,7 +2,8 @@
 import { Router } from 'express';
 import { submitStudentApplication,fetchPendingApplications,
   handleApproveApplication,
-  handleRejectApplication } from '../controllers/studentController';
+  handleRejectApplication,
+  handleTrackApplication } from '../controllers/studentController';
 import { upload } from '../middlewares/uploadMiddleware';
 import { authMiddleware,checkRole } from '../middlewares/authMiddleware';
 import { requireActiveSubscription } from '../middlewares/subscriptionMiddleware';
@@ -131,5 +132,25 @@ router.put(
  *               $ref: '#/components/schemas/StudentResponseSchema'
  */
 router.put('/students/:studentId/reject', authMiddleware,checkRole(['SchoolManager', 'AdmissionManager']), requireActiveSubscription, handleRejectApplication);
+
+/**
+ * @swagger
+ * /api/students/track/{code}:
+ *   get:
+ *     summary: Public application status lookup by tracking code (no auth - the code itself is the access control)
+ *     tags: [Students]
+ *     parameters:
+ *       - name: code
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Application status fetched successfully
+ *       404:
+ *         description: Application not found
+ */
+router.get('/students/track/:code', handleTrackApplication);
 
 export default router;
