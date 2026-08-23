@@ -62,7 +62,8 @@ export const submitStudentApplication = async (req: Request, res: Response) => {
 export const handleTrackApplication = async (req: Request, res: Response) => {
   try {
     const { code } = req.params;
-    const result = await trackApplication(code as string);
+    const lang = req.query.lang ? String(req.query.lang) : 'en';
+    const result = await trackApplication(code as string, lang);
 
     return ResponseService({
       data: result,

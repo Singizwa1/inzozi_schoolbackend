@@ -81,7 +81,8 @@ export const getProfile = async (req: IRequestUser, res: Response) => {
     }
     
 
-  const result =await SchoolService.getSchoolProfile(schoolId,limit,offset,page);
+  const lang = req.query.lang ? String(req.query.lang) : 'en';
+  const result =await SchoolService.getSchoolProfile(schoolId,limit,offset,page,lang);
 
     return ResponseService({
       data: result,
@@ -199,7 +200,8 @@ export const listSpots = async (req: IRequestUser, res: Response) => {
       });
     }
 
-    const spots = await SchoolService.listSchoolSpots(schoolId,limit,offset,page);
+    const lang = req.query.lang ? String(req.query.lang) : 'en';
+    const spots = await SchoolService.listSchoolSpots(schoolId,limit,offset,page,lang);
 
     return ResponseService({
       data: spots,
@@ -290,7 +292,8 @@ export const listGallery = async (req: IRequestUser, res: Response) => {
       });
     }
 
-    const images = await SchoolService.listGalleryImages(schoolId,limit, offset, page,category );
+    const lang = req.query.lang ? String(req.query.lang) : 'en';
+    const images = await SchoolService.listGalleryImages(schoolId,limit, offset, page,category,lang );
       
        return ResponseService({
       data: images,

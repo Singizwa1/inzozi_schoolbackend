@@ -443,7 +443,8 @@ export const SchoolSearch = async (req: Request, res: Response): Promise<Respons
       studentType: queryFilters.studentType ? String(queryFilters.studentType) : undefined,
     };
 
-    const result = await SchoolService.searchSchools(limit, offset, page, filters);
+    const lang = req.query.lang ? String(req.query.lang) : 'en';
+    const result = await SchoolService.searchSchools(limit, offset, page, filters, lang);
 
     return ResponseService({
       data: result,

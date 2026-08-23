@@ -10,6 +10,7 @@ import { SchoolGallery } from '../database/models/SchoolGallery';
 import { SchoolSpot } from '../database/models/SchoolSpot';
 import { Op, where as sequelizeWhere, literal } from 'sequelize';
 import { startTrial } from './subscriptionService';
+import { translateText, translateFields } from './translationService';
 
 
 export const registerSchool = async (userId: string, data: ISchoolRegister) => {
@@ -292,17 +293,28 @@ export const updateSchoolProfile = async (schoolId: string, data: IUpdateSchoolP
 
   return profile;
 };
-export const getSchoolProfile = async (schoolId: string ,limit:number,offset:number,page:number) => {
+export const getSchoolProfile = async (schoolId: string ,limit:number,offset:number,page:number, lang = 'en') => {
   const {rows,count} = await SchoolProfile.findAndCountAll({ where: { schoolId }, limit, offset,order: [['createdAt', 'DESC']] });
 
+  const profiles = await Promise.all(
+    rows.map(async (row) => {
+      const profile = row.get({ plain: true }) as any;
+      const translated = await translateFields(
+        { description: profile.description, mission: profile.mission, vision: profile.vision, accreditation: profile.accreditation },
+        lang
+      );
+      return { ...profile, ...translated };
+    })
+  );
+
   return {
-    profiles: rows,
+    profiles,
     total: count,
     page,
     limit,
     totalPages: Math.ceil(count / limit),
   };
-  
+
 };
 
 export const createSchoolSpot = async (
@@ -369,16 +381,27 @@ export const updateSchoolSpot = async (schoolId: string, spotId: string, data: I
   return spot.update(data);
 };
 
-export const listSchoolSpots = async (schoolId: string,limit:number,offset:number,page:number) => {
+export const listSchoolSpots = async (schoolId: string,limit:number,offset:number,page:number, lang = 'en') => {
   const {rows,count} = await SchoolSpot.findAndCountAll({ where: { schoolId }, limit, offset,order: [['createdAt', 'DESC']] });
-    return {
-    spots: rows,
+
+  const spots = await Promise.all(
+    rows.map(async (row) => {
+      const spot = row.get({ plain: true }) as any;
+      const notes = spot.admissionConditions?.notes;
+      if (!notes) return spot;
+      const translatedNotes = await translateText(notes, lang);
+      return { ...spot, admissionConditions: { ...spot.admissionConditions, notes: translatedNotes } };
+    })
+  );
+
+  return {
+    spots,
     total: count,
     page,
     limit,
     totalPages: Math.ceil(count / limit),
   };
-  
+
 };
 
 export const deleteSchoolSpot = async (schoolId: string, spotId: string,_userId:string) => {
@@ -395,12 +418,12 @@ export const addGalleryImage = async (schoolId: string, data: ICreateSchoolGalle
 };
 
 
-export const listGalleryImages = async (schoolId: string,limit:number,offset:number,page:number,category?:string) => {
+export const listGalleryImages = async (schoolId: string,limit:number,offset:number,page:number,category?:string, lang = 'en') => {
 
   const where: any = { schoolId };
 
   if (category) {
-    where.category = category; 
+    where.category = category;
   }
 
   const { rows, count } = await SchoolGallery.findAndCountAll({
@@ -413,8 +436,16 @@ export const listGalleryImages = async (schoolId: string,limit:number,offset:num
     ],
   });
 
+  const images = await Promise.all(
+    rows.map(async (row) => {
+      const image = row.get({ plain: true }) as any;
+      if (!image.caption) return image;
+      return { ...image, caption: await translateText(image.caption, lang) };
+    })
+  );
+
   return {
-    images: rows,
+    images,
     total: count,
     page,
     limit,
@@ -482,7 +513,8 @@ export const searchSchools = async (
   limit: number,
   offset: number,
   page: number,
-  filters: SearchFilters
+  filters: SearchFilters,
+  lang = 'en'
 ) => {
   const { schoolName, district, schoolType, schoolLevel, schoolCategory, yearOfStudy, combination, academicYear, minAvailableSpots, studentType } = filters;
 
@@ -528,7 +560,30 @@ export const searchSchools = async (
     order: [['createdAt', 'DESC']],
   });
 
-  const schools = rows.map((school) => school.get({ plain: true }));
+  const plainSchools = rows.map((school) => school.get({ plain: true })) as any[];
+
+  const schools = await Promise.all(
+    plainSchools.map(async (school) => {
+      if (school.profile) {
+        const translatedProfile = await translateFields(
+          { mission: school.profile.mission, vision: school.profile.vision, description: school.profile.description },
+          lang
+        );
+        school.profile = { ...school.profile, ...translatedProfile };
+      }
+      if (Array.isArray(school.spots)) {
+        school.spots = await Promise.all(
+          school.spots.map(async (spot: any) => {
+            const notes = spot.admissionConditions?.notes;
+            if (!notes) return spot;
+            const translatedNotes = await translateText(notes, lang);
+            return { ...spot, admissionConditions: { ...spot.admissionConditions, notes: translatedNotes } };
+          })
+        );
+      }
+      return school;
+    })
+  );
 
   return {
     schools,

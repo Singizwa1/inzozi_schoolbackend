@@ -7,6 +7,7 @@ import { School } from '../database/models/School';
 import { User } from '../database/models/User';
 import { uploadToCloud } from '../utils/uploadHelper';
 import { sequelize } from '../database';
+import { translateText } from './translationService';
 
 // no 0/O/1/I/L - avoids visual confusion, matches the migration's backfill alphabet
 const TRACKING_CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
@@ -78,7 +79,7 @@ export const createStudentApplication = async (data: any) => {
 // is the access control, the same pattern as a courier tracking number. Only
 // returns what the parent already gave us at application time, plus the
 // school's decision.
-export const trackApplication = async (trackingCode: string) => {
+export const trackApplication = async (trackingCode: string, lang = 'en') => {
   const student = await Student.findOne({
     where: { trackingCode: normalizeTrackingCode(trackingCode) },
     include: [{ model: School, as: 'school', attributes: ['schoolName'] }],
@@ -98,7 +99,7 @@ export const trackApplication = async (trackingCode: string) => {
     studentType: student.studentType,
     representerEmail: student.representerEmail,
     schoolName: school?.schoolName ?? null,
-    rejectedReason: student.rejectedReason ?? null,
+    rejectedReason: student.rejectedReason ? await translateText(student.rejectedReason, lang) : null,
     babyeyiDocument: student.babyeyiDocument ?? null,
     submittedAt: student.createdAt,
     decidedAt: student.status === 'pending' ? null : student.updatedAt,

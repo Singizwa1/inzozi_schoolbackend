@@ -9,6 +9,7 @@ import { Student, StudentModel } from './Student';
 import { Application, ApplicationModel } from './Application';
 import { SubscriptionSetting, SubscriptionSettingModel } from './SubscriptionSetting';
 import { SubscriptionPayment, SubscriptionPaymentModel } from './SubscriptionPayment';
+import { TranslationCache, TranslationCacheModel } from './TranslationCache';
 
 interface Modals {
   Role: typeof Role;
@@ -21,6 +22,7 @@ interface Modals {
   Application: typeof Application;
   SubscriptionSetting: typeof SubscriptionSetting;
   SubscriptionPayment: typeof SubscriptionPayment;
+  TranslationCache: typeof TranslationCache;
 
 }
 export const AllModal = (sequelize: Sequelize): Modals => ({
@@ -34,7 +36,6 @@ export const AllModal = (sequelize: Sequelize): Modals => ({
   Application: ApplicationModel(sequelize),
   SubscriptionSetting: SubscriptionSettingModel(sequelize),
   SubscriptionPayment: SubscriptionPaymentModel(sequelize),
-
-
+  TranslationCache: TranslationCacheModel(sequelize),
 
 });
