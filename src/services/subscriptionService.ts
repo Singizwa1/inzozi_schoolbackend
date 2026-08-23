@@ -161,7 +161,7 @@ export const runNightlySubscriptionSweep = async (): Promise<void> => {
       if (manager) {
         const daysRemaining = Math.max(0, Math.ceil((endDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
         try {
-          await sendEmail(manager.email, 'Your Inzozi subscription is ending soon', 'subscriptionReminder', {
+          await sendEmail(manager.email, 'Your Inzoziedu subscription is ending soon', 'subscriptionReminder', {
             managerName: manager.firstName,
             schoolName: school.schoolName,
             daysRemaining,

@@ -4,9 +4,9 @@ const options = {
   definition: {
     openapi: '3.0.0',
     info: {
-      title: 'Inzozi School API',
+      title: 'Inzoziedu School API',
       version: '1.0.0',
-      description: 'Backend API for Inzozi School platform. Supports school search, registration, and multi-language support.',
+      description: 'Backend API for Inzoziedu School platform. Supports school search, registration, and multi-language support.',
     },
     servers: [
   {
@@ -411,7 +411,7 @@ CreateAdmissionManagerResponse: {
   UpdateSchoolInfoSchema : {
   type: 'object',
   properties: {
-    schoolName: { type: 'string', example: 'Inzozi International School' },
+    schoolName: { type: 'string', example: 'Inzoziedu International School' },
     schoolCode: { type: 'string', example: 'INS123' },
     schoolCategory: { 
       type: 'string', 
@@ -436,7 +436,7 @@ CreateAdmissionManagerResponse: {
     sector: { type: 'string', example: 'Kacyiru', nullable: true },
     cell: { type: 'string', example: 'Kacyiru Cell', nullable: true },
     village: { type: 'string', example: 'Village 1', nullable: true },
-    email: { type: 'string', format: 'email', example: 'info@inzozischool.com' },
+    email: { type: 'string', format: 'email', example: 'info@inzoziedu.com' },
     telephone: { type: 'string', example: '+250788123456', nullable: true },
     licenseDocument: { type: 'string', example: 'https://res.cloudinary.com/.../license.pdf', nullable: true },
   },
