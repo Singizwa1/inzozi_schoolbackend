@@ -18,6 +18,21 @@ cloudinary.config({
   api_secret: CLOUDINARY_API_SECRET,
 });
 
+// Fallback for the rare case a browser hands multer a file with no
+// extension in its original name (some mobile camera-capture flows do
+// this) - without this, that one upload would silently regress to the
+// extension-less-public_id bug this file exists to prevent.
+const MIME_EXTENSIONS: Record<string, string> = {
+  'application/pdf': '.pdf',
+  'application/msword': '.doc',
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
+  'application/zip': '.zip',
+  'image/jpeg': '.jpg',
+  'image/png': '.png',
+  'image/webp': '.webp',
+  'image/gif': '.gif',
+};
+
 // Upload helper
 export const uploadToCloud = (
   file: Express.Multer.File,
@@ -29,7 +44,7 @@ export const uploadToCloud = (
   // back as an extension-less URL that browsers/OSes can't open as a real
   // document on download. Keeping the original extension on the public_id
   // fixes that for both raw and image uploads.
-  const ext = path.extname(file.originalname);
+  const ext = path.extname(file.originalname) || MIME_EXTENSIONS[file.mimetype] || '';
   const publicId = ext ? `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}` : undefined;
 
   return new Promise((resolve, reject) => {
