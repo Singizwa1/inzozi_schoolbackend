@@ -4,7 +4,7 @@ import { UserService } from "../services/userServices";
 import { CreateSchoolManagerDto } from "../types/userInterface";
 import { IRequestUser } from "../middlewares/authMiddleware";
 import {asString} from '../utils/helper';
-import { uploadToCloud } from '../utils/uploadHelper';
+import { uploadToStorage } from '../utils/uploadHelper';
 
 export class UserController {
 
@@ -102,7 +102,7 @@ export class UserController {
     try {
       const data = { ...req.body };
       if (req.file) {
-        data.profileImage = await uploadToCloud(req.file, 'users/profileImages', 'image');
+        data.profileImage = uploadToStorage(req.file);
       }
 
       const updatedUser = await UserService.updateUser(req.user, userId, data);

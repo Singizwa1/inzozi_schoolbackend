@@ -10,6 +10,7 @@ import { SchoolGallery } from '../database/models/SchoolGallery';
 import { SchoolSpot } from '../database/models/SchoolSpot';
 import { Op, where as sequelizeWhere, literal } from 'sequelize';
 import { startTrial } from './subscriptionService';
+import { deleteFromStorage } from '../utils/uploadHelper';
 import { translateText, translateFields } from './translationService';
 
 
@@ -457,13 +458,19 @@ export const listGalleryImages = async (schoolId: string,limit:number,offset:num
 export const updateGalleryImage = async (schoolId: string, imageId: string, data: Partial<ICreateSchoolGallery>,_userId:string) => {
   const image = await SchoolGallery.findOne({ where: { id: imageId, schoolId } });
   if (!image) throw new Error('Gallery image not found');
-  return image.update(data);
+  const previousImageUrl = image.imageUrl;
+  const updated = await image.update(data);
+  if (data.imageUrl && data.imageUrl !== previousImageUrl) {
+    deleteFromStorage(previousImageUrl);
+  }
+  return updated;
 };
- 
+
 export const deleteGalleryImage = async (schoolId: string, imageId: string,_userId:string) => {
   const image = await SchoolGallery.findOne({ where: { id: imageId, schoolId } });
   if (!image) throw new Error('Gallery image not found');
   await image.destroy();
+  deleteFromStorage(image.imageUrl);
   return true;
 };
 

@@ -2,7 +2,7 @@ import { Request, Response } from 'express';
 import * as SchoolService from '../services/schoolService';
 import { ResponseService } from '../utils/response';
 import {asString} from '../utils/helper';
-import { uploadToCloud } from '../utils/uploadHelper';
+import { uploadToStorage } from '../utils/uploadHelper';
 import { IRequestUser } from '../middlewares/authMiddleware';
 import { getPagination } from '../utils/pagination';
 import { SearchFilters } from '../types/School';
@@ -26,7 +26,7 @@ export const registerSchool = async (req: IRequestUser, res: Response) => {
 
     // Upload license document if file provided
     if (req.file) {
-      const fileUrl = await uploadToCloud(req.file);
+      const fileUrl = uploadToStorage(req.file);
       schoolData.licenseDocument = fileUrl;
     }
 
@@ -367,7 +367,7 @@ export const resubmitSchool = async (req: IRequestUser, res: Response) => {
 
     // Handle licenseDocument file if uploaded
     if (req.file) {
-      const fileUrl = await uploadToCloud(req.file);
+      const fileUrl = uploadToStorage(req.file);
       updatedData.licenseDocument = fileUrl;
     }
 

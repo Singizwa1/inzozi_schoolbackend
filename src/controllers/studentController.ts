@@ -2,7 +2,7 @@
 import { Request, Response } from 'express';
 import {  createStudentApplication,getPendingApplications, approveApplication, rejectApplication, trackApplication } from '../services/studentService';
 import { ResponseService } from '../utils/response';
-import { uploadToCloud } from '../utils/uploadHelper';
+import { uploadToStorage } from '../utils/uploadHelper';
 import { IRequestUser } from '../middlewares/authMiddleware';
 
 
@@ -28,15 +28,15 @@ export const submitStudentApplication = async (req: Request, res: Response) => {
       });
     }
 
-    data.passportPhoto = await uploadToCloud(files.passportPhoto[0]);
+    data.passportPhoto = uploadToStorage(files.passportPhoto[0]);
     if (files.resultSlip?.[0]) {
-      data.resultSlip = await uploadToCloud(files.resultSlip[0]);
+      data.resultSlip = uploadToStorage(files.resultSlip[0]);
     }
     if (files.previousReport?.[0]) {
-      data.previousReport = await uploadToCloud(files.previousReport[0]);
+      data.previousReport = uploadToStorage(files.previousReport[0]);
     }
     if (files.mitationLetter?.[0]) {
-      data.mitationLetter = await uploadToCloud(files.mitationLetter[0]);
+      data.mitationLetter = uploadToStorage(files.mitationLetter[0]);
     }
 
     const student = await createStudentApplication(data);

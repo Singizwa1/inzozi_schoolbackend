@@ -1,61 +1,37 @@
-import { v2 as cloudinary } from 'cloudinary';
-import streamifier from 'streamifier';
-import { config } from 'dotenv';
+import fs from 'fs';
 import path from 'path';
+import { UPLOADS_ROOT } from '../middlewares/uploadMiddleware';
 
-config();
+const PUBLIC_BASE_URL = (process.env.PUBLIC_BASE_URL || 'http://localhost:5000').replace(/\/$/, '');
 
-
-const { CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET } = process.env;
-if (!CLOUDINARY_CLOUD_NAME || !CLOUDINARY_API_KEY || !CLOUDINARY_API_SECRET) {
-  throw new Error("Cloudinary environment variables are missing");
-}
-
-
-cloudinary.config({
-  cloud_name: CLOUDINARY_CLOUD_NAME,
-  api_key: CLOUDINARY_API_KEY,
-  api_secret: CLOUDINARY_API_SECRET,
-});
-
-// Fallback for the rare case a browser hands multer a file with no
-// extension in its original name (some mobile camera-capture flows do
-// this) - without this, that one upload would silently regress to the
-// extension-less-public_id bug this file exists to prevent.
-const MIME_EXTENSIONS: Record<string, string> = {
-  'application/pdf': '.pdf',
-  'application/msword': '.doc',
-  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '.docx',
-  'application/zip': '.zip',
-  'image/jpeg': '.jpg',
-  'image/png': '.png',
-  'image/webp': '.webp',
-  'image/gif': '.gif',
+/**
+ * Multer's disk storage (see uploadMiddleware.ts) has already written the
+ * file to uploads/<folder>/<filename> by the time a controller runs - this
+ * just builds the public URL for it. No network call, no await needed;
+ * kept as the same function name/shape the codebase already calls
+ * (`uploadToStorage(file)`) so every call site stayed a one-line swap from
+ * the old Cloudinary version.
+ */
+export const uploadToStorage = (file: Express.Multer.File): string => {
+  const relativePath = path.relative(UPLOADS_ROOT, file.path).split(path.sep).join('/');
+  return `${PUBLIC_BASE_URL}/uploads/${relativePath}`;
 };
 
-// Upload helper
-export const uploadToCloud = (
-  file: Express.Multer.File,
-  folder: string = 'schools/licenses',
-  resourceType: 'raw' | 'image' = 'raw'
-): Promise<string> => {
-  // Cloudinary's "raw" delivery uses the public_id as-is with no extension
-  // unless one is baked into it - so without this, uploaded PDFs/docs come
-  // back as an extension-less URL that browsers/OSes can't open as a real
-  // document on download. Keeping the original extension on the public_id
-  // fixes that for both raw and image uploads.
-  const ext = path.extname(file.originalname) || MIME_EXTENSIONS[file.mimetype] || '';
-  const publicId = ext ? `${Date.now()}-${Math.round(Math.random() * 1e9)}${ext}` : undefined;
-
-  return new Promise((resolve, reject) => {
-    const uploadStream = cloudinary.uploader.upload_stream(
-      { folder, resource_type: resourceType, ...(publicId ? { public_id: publicId } : {}) },
-      (error, result) => {
-        if (error || !result) return reject(error);
-        resolve(result.secure_url);
-      }
-    );
-
-    streamifier.createReadStream(file.buffer).pipe(uploadStream);
+/**
+ * Removes a file previously returned by uploadToStorage, given its public
+ * URL. Unlike Cloudinary, local disk space isn't free/managed for us, so
+ * callers that replace or discard an uploaded asset (e.g. gallery image
+ * update/delete) need to actually reclaim it. Silently no-ops for
+ * anything that isn't one of our own /uploads URLs (old Cloudinary links
+ * still in the DB, external URLs, etc) or that's already gone.
+ */
+export const deleteFromStorage = (url: string | null | undefined): void => {
+  if (!url || !url.startsWith(`${PUBLIC_BASE_URL}/uploads/`)) return;
+  const relativePath = url.slice(`${PUBLIC_BASE_URL}/uploads/`.length);
+  const filePath = path.join(UPLOADS_ROOT, ...relativePath.split('/'));
+  fs.unlink(filePath, (err) => {
+    if (err && err.code !== 'ENOENT') {
+      console.error(`Failed to delete file at ${filePath}:`, err.message);
+    }
   });
 };

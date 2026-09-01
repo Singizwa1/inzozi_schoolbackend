@@ -215,7 +215,7 @@ ResetPasswordResponse: {
                 email: { type: 'string', example: 'school@example.com' },
                 district: { type: 'string', example: 'Nyarugenge' },
                 status: { type: 'string', enum: ['pending', 'approved', 'rejected'], example: 'pending' },
-                licenseDocument: { type: 'string', example: 'https://res.cloudinary.com/.../license.pdf' },
+                licenseDocument: { type: 'string', example: 'http://localhost:5000/uploads/schools/licenses/example.pdf' },
                 approvedBy: { type: 'string', format: 'uuid', example: null },
                 approvedAt: { type: 'string', format: 'date-time', example: null },
                 rejectedReason: { type: 'string', example: null },
@@ -404,7 +404,7 @@ CreateAdmissionManagerResponse: {
      // accreditation: { type: 'string', example: 'REB' },
       //languagesOffered: { type: 'array', items: { type: 'string' }, example: ['English', 'French'] },
       //extracurriculars: { type: 'array', items: { type: 'string' }, example: ['Football', 'Debate'] },
-      profilePhoto: { type: 'string', format: 'binary', example: 'https://res.cloudinary.com/.../profile.jpg' },
+      profilePhoto: { type: 'string', format: 'binary', example: 'http://localhost:5000/uploads/schools/profiles/example.jpg' },
     },
   },
 
@@ -438,7 +438,7 @@ CreateAdmissionManagerResponse: {
     village: { type: 'string', example: 'Village 1', nullable: true },
     email: { type: 'string', format: 'email', example: 'info@inzoziedu.com' },
     telephone: { type: 'string', example: '+250788123456', nullable: true },
-    licenseDocument: { type: 'string', example: 'https://res.cloudinary.com/.../license.pdf', nullable: true },
+    licenseDocument: { type: 'string', example: 'http://localhost:5000/uploads/schools/licenses/example.pdf', nullable: true },
   },
   required: [], // all fields optional for update
 },
@@ -622,7 +622,7 @@ SearchSchoolsResponseSchema :{
         enum: ['classroom', 'computerLab', 'library', 'sports', 'dining', 'dormitory', 'administration', 'playground'], 
         example: 'classroom' 
       },
-      imageUrl:{ type: 'string', format: 'binary', example: 'https://res.cloudinary.com/.../imageUrl.jpg' },
+      imageUrl:{ type: 'string', format: 'binary', example: 'http://localhost:5000/uploads/schools/gallery/example.jpg' },
       caption: { type: 'string', example: 'Our new science lab' },
       isFeatured: { type: 'boolean', example: true },
       order: { type: 'integer', minimum: 0, example: 1 },

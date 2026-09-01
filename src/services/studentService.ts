@@ -5,7 +5,7 @@ import { SchoolSpot } from '../database/models/SchoolSpot';
 import { emailEmitter } from '../events/emailEvent';
 import { School } from '../database/models/School';
 import { User } from '../database/models/User';
-import { uploadToCloud } from '../utils/uploadHelper';
+import { uploadToStorage } from '../utils/uploadHelper';
 import { sequelize } from '../database';
 import { translateText } from './translationService';
 
@@ -130,7 +130,7 @@ export const approveApplication = async (studentId: string, babyeyiFile: Express
   if (student.schoolId !== schoolId) throw new Error('You do not have permission to approve this application');
 
   // Upload before opening the transaction - no reason to hold a row lock during a network call
-  const babyeyiUrl = await uploadToCloud(babyeyiFile);
+  const babyeyiUrl = uploadToStorage(babyeyiFile);
 
   await sequelize.transaction(async (t) => {
     // Row-lock the spot so two concurrent approvals can't both squeeze into the last opening

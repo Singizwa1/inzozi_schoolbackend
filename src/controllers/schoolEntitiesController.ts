@@ -1,7 +1,7 @@
 import { Response } from 'express';
 import * as SchoolService from '../services/schoolService';
 import { ResponseService } from '../utils/response';
-import { uploadToCloud } from '../utils/uploadHelper';
+import { uploadToStorage } from '../utils/uploadHelper';
 import { IRequestUser } from '../middlewares/authMiddleware';
 import { getPagination } from '../utils/pagination';
 import { asString } from '../utils/helper';
@@ -40,7 +40,7 @@ export const updateProfile = async (req: IRequestUser, res: Response) => {
       });
     }
 
-    const profilePhoto = await uploadToCloud(req.file);
+    const profilePhoto = uploadToStorage(req.file);
 
     const profile = await SchoolService.updateSchoolProfile(schoolId, {...updatedProfile,profilePhoto},getUserId(req));
 
@@ -247,7 +247,7 @@ export const addGallery = async (req: IRequestUser, res: Response) => {
       });
     }
 
-    const imageUrl = await uploadToCloud(req.file);
+    const imageUrl = uploadToStorage(req.file);
 
     const gallery = await SchoolService.addGalleryImage(schoolId, {
       ...galleryData,
@@ -341,7 +341,7 @@ export const updateGallery = async (req: IRequestUser, res: Response) => {
 
     
     if (req.file) {
-      const fileUrl = await uploadToCloud(req.file);
+      const fileUrl = uploadToStorage(req.file);
       updatedData = { ...updatedData, imageUrl: fileUrl };
     }
 
