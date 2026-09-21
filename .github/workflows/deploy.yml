@@ -21,4 +21,4 @@ jobs:
             npm install
             npm run build
             npm run db:migrate:prod
-            pm2 restart server
+            pm2 restart server --update-env

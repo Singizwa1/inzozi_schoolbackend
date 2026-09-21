@@ -379,6 +379,15 @@ export const updateSchoolSpot = async (schoolId: string, spotId: string, data: I
     }
   }
 
+  // occupiedSpots is intentionally editable here (e.g. a walk-in/in-person
+  // admission that never went through approveApplication's online flow),
+  // but it must never be pushed out of sync with totalSpots either way.
+  const nextTotalSpots = data.totalSpots ?? spot.totalSpots;
+  const nextOccupiedSpots = data.occupiedSpots ?? spot.occupiedSpots;
+  if (nextOccupiedSpots > nextTotalSpots) {
+    throw new Error('occupiedSpots cannot exceed totalSpots');
+  }
+
   return spot.update(data);
 };
 

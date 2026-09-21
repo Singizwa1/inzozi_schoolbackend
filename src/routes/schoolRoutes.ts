@@ -2,7 +2,7 @@
 import { Router } from 'express';
 import { authMiddleware, checkRole } from '../middlewares/authMiddleware';
 import { ValidationMiddleware } from '../middlewares/validationMiddleware';
-import { SchoolRegisterSchema, RejectSchoolSchema,CreateSchoolGallerySchema,CreateSchoolSpotSchema,updateSchoolInfoSchema,UpdateSchoolProfileSchema,ReassignManagerSchema} from '../schema/school';
+import { SchoolRegisterSchema, RejectSchoolSchema,CreateSchoolGallerySchema,CreateSchoolSpotSchema,UpdateSchoolSpotSchema,updateSchoolInfoSchema,UpdateSchoolProfileSchema,ReassignManagerSchema} from '../schema/school';
 import * as SchoolController from '../controllers/schoolController';
 import * as SchoolEntitiesController from  '../controllers/schoolEntitiesController'
 import { upload } from '../middlewares/uploadMiddleware';
@@ -620,6 +620,7 @@ router.put(
   authMiddleware,
   checkRole(['SchoolManager', 'AdmissionManager']),
   requireActiveSubscription,
+  ValidationMiddleware({ type: 'body', schema: UpdateSchoolSpotSchema }),
   SchoolEntitiesController.updateSpot
 );
 
