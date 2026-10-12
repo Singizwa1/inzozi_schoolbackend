@@ -62,7 +62,6 @@
     "typescript-eslint": "^8.41.0"
   },
   "dependencies": {
-    "@sendgrid/mail": "^8.1.6",
     "babel-register": "^6.26.0",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -81,7 +80,7 @@
     "pg": "^8.16.3",
     "pg-hstore": "^2.3.4",
     "redis": "^5.8.2",
-    "sendgrid": "^5.2.3",
+    "resend": "^6.30.0",
     "sequelize": "^6.37.7",
     "sequelize-cli": "^6.6.3",
     "swagger-jsdoc": "^6.2.8",
