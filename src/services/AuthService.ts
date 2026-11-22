@@ -1,5 +1,12 @@
 import { User } from "../database/models/User";
-import { comparePassword, generateToken, destroyToken } from "../utils/helper";
+import {
+  comparePassword,
+  generateToken,
+  destroyToken,
+  generateRefreshToken,
+  verifyRefreshToken,
+  revokeRefreshToken,
+} from "../utils/helper";
 import { hashPassword } from "../utils/helper";
 import { redis } from "../utils/redis";
 import { emailEmitter } from "../events/emailEvent";
@@ -44,7 +51,13 @@ export class AuthService {
       role: user.role.id,
     });
 
-    
+    const refreshToken = await generateRefreshToken({
+      id: user.id,
+      email: user.email,
+      role: user.role.id,
+    });
+
+
     let schoolStatus: "not_registered" | "pending" | "approved" | "rejected" | null = null;
 
     if (user.role.name === "SchoolManager") {
@@ -78,6 +91,7 @@ export class AuthService {
         mustChangePassword: user.mustChangePassword ?? false,
       },
       token,
+      refreshToken,
     };
 
     if (schoolStatus) responseData.schoolStatus = schoolStatus;
@@ -92,13 +106,51 @@ export class AuthService {
 
 
   // Logout
-  async logout(token: string | undefined) {
+  async logout(token: string | undefined, refreshToken?: string) {
     if (!token) {
       return { success: false, status: 400, message: "Token missing", data: null };
     }
 
-    await destroyToken(token); 
+    await destroyToken(token);
+
+    if (refreshToken) {
+      try {
+        const decoded = await verifyRefreshToken(refreshToken);
+        await revokeRefreshToken(decoded.jti);
+      } catch {
+        // Already expired/revoked - nothing left to clean up.
+      }
+    }
+
     return { success: true, status: 200, message: "Logged out successfully", data: null };
+  }
+
+  // Exchanges a still-valid refresh token for a new access + refresh token
+  // pair. The refresh token is single-use (rotated): the old one is revoked
+  // before the new pair is issued, so a stolen/replayed refresh token can't
+  // be used twice.
+  async refreshAccessToken(refreshToken: string | undefined) {
+    if (!refreshToken) {
+      return { success: false, status: 400, message: "Refresh token missing", data: null };
+    }
+
+    try {
+      const decoded = await verifyRefreshToken(refreshToken);
+      await revokeRefreshToken(decoded.jti);
+
+      const newToken = await generateToken({ id: decoded.id, email: decoded.email, role: decoded.role });
+      const newRefreshToken = await generateRefreshToken({ id: decoded.id, email: decoded.email, role: decoded.role });
+
+      const data: { token: string; refreshToken?: string } = { token: newToken, refreshToken: newRefreshToken };
+      return {
+        success: true,
+        status: 200,
+        message: "Token refreshed successfully",
+        data,
+      };
+    } catch {
+      return { success: false, status: 401, message: "Invalid or expired refresh token", data: null };
+    }
   }
 }
 

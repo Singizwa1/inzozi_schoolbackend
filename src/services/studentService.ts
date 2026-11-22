@@ -8,6 +8,7 @@ import { User } from '../database/models/User';
 import { uploadToStorage } from '../utils/uploadHelper';
 import { sequelize } from '../database';
 import { translateText } from './translationService';
+import { AppError } from '../utils/errors';
 
 // no 0/O/1/I/L - avoids visual confusion, matches the migration's backfill alphabet
 const TRACKING_CODE_ALPHABET = '23456789ABCDEFGHJKMNPQRSTUVWXYZ';
@@ -128,11 +129,23 @@ export const approveApplication = async (studentId: string, babyeyiFile: Express
 
   const schoolId = await getManagedSchoolId(managerId);
   if (student.schoolId !== schoolId) throw new Error('You do not have permission to approve this application');
+  if (student.status !== 'pending') {
+    throw new AppError(`This application has already been ${student.status}`, 409);
+  }
 
   // Upload before opening the transaction - no reason to hold a row lock during a network call
   const babyeyiUrl = uploadToStorage(babyeyiFile);
 
   await sequelize.transaction(async (t) => {
+    // Re-check under lock - closes the race where two concurrent approve
+    // requests for the same student both pass the status check above
+    // before either one commits.
+    const lockedStudent = await Student.findByPk(studentId, { transaction: t, lock: t.LOCK.UPDATE });
+    if (!lockedStudent) throw new Error('Student not found');
+    if (lockedStudent.status !== 'pending') {
+      throw new AppError(`This application has already been ${lockedStudent.status}`, 409);
+    }
+
     // Row-lock the spot so two concurrent approvals can't both squeeze into the last opening
     const spot = await SchoolSpot.findByPk(student.schoolSpotId, { transaction: t, lock: t.LOCK.UPDATE });
     if (!spot) throw new Error('School spot not found');
@@ -167,6 +180,9 @@ export const rejectApplication = async (studentId: string, reason: string, manag
 
   const schoolId = await getManagedSchoolId(managerId);
   if (student.schoolId !== schoolId) throw new Error('You do not have permission to reject this application');
+  if (student.status !== 'pending') {
+    throw new AppError(`This application has already been ${student.status}`, 409);
+  }
 
   student.status = 'rejected';
   student.rejectedReason = reason;

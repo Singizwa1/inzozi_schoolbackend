@@ -32,6 +32,9 @@ export const comparePassword = async (password: string, hash: string): Promise<b
 
 export const secretKey = process.env.JWT_SECRET || 'SecretKey';
 
+export const ACCESS_TOKEN_TTL_SECONDS = 60 * 60; // 60 minutes
+export const REFRESH_TOKEN_TTL_SECONDS = 30 * 24 * 60 * 60; // 30 days
+
 export const generateToken = async ({
   id,
   email,
@@ -44,9 +47,9 @@ export const generateToken = async ({
   const payload = { id, email, role };
   const jti = uuidv4();
   const tokenPayload = { ...payload, jti };
-  const token = jwt.sign(tokenPayload, secretKey, { expiresIn: '12h' });
+  const token = jwt.sign(tokenPayload, secretKey, { expiresIn: ACCESS_TOKEN_TTL_SECONDS });
 
-  await redis.setEx(`jwt:${jti}`, 12 * 60 * 60, JSON.stringify(tokenPayload));
+  await redis.setEx(`jwt:${jti}`, ACCESS_TOKEN_TTL_SECONDS, JSON.stringify(tokenPayload));
   return token;
 };
 
@@ -76,6 +79,47 @@ export const destroyToken = async (token: string | undefined): Promise<void> => 
     errorLogger(error as Error, 'Token Destruction');
     throw error;
   }
+};
+
+// Refresh tokens are tracked in Redis the same way access tokens are (by
+// jti), just under their own prefix and a much longer TTL, so a refresh
+// token can be individually revoked (rotation, logout) without touching
+// access-token state.
+export const generateRefreshToken = async ({
+  id,
+  email,
+  role,
+}: {
+  id: string;
+  email: string;
+  role: string;
+}): Promise<string> => {
+  const payload = { id, email, role };
+  const jti = uuidv4();
+  const tokenPayload = { ...payload, jti };
+  const token = jwt.sign(tokenPayload, secretKey, { expiresIn: REFRESH_TOKEN_TTL_SECONDS });
+
+  await redis.setEx(`refreshjwt:${jti}`, REFRESH_TOKEN_TTL_SECONDS, JSON.stringify(tokenPayload));
+  return token;
+};
+
+export const verifyRefreshToken = async (token: string): Promise<JWTPayload> => {
+  try {
+    const decoded = jwt.verify(token, secretKey) as JWTPayload;
+    const storedData = await redis.get(`refreshjwt:${decoded.jti}`);
+    if (!storedData) {
+      throw new Error('Refresh token not found - may have been revoked or already used');
+    }
+    return decoded;
+  } catch (error) {
+    errorLogger(error as Error, 'Refresh Token Verification');
+    throw error;
+  }
+};
+
+// Called on rotation (a refresh token is single-use) and on logout.
+export const revokeRefreshToken = async (jti: string): Promise<void> => {
+  await redis.del(`refreshjwt:${jti}`);
 };
 export const asString = (value: unknown): string => {
   if (Array.isArray(value)) return String(value[0] ?? '');

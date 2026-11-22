@@ -3,8 +3,21 @@ import { AuthService,PasswordResetService} from "../services/AuthService";
 import { ResponseService } from "../utils/response";
 import { IRequestUser } from "../middlewares/authMiddleware";
 import { LoginUserRequest } from "../types/userInterface";
+import { REFRESH_TOKEN_TTL_SECONDS } from "../utils/helper";
 
 const authService = new AuthService();
+
+// The refresh token never touches frontend JS (not readable by XSS'd code);
+// it only ever travels as this httpOnly cookie, scoped to the auth routes
+// that actually need it.
+const REFRESH_COOKIE_NAME = "refreshToken";
+const refreshCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "strict" as const,
+  path: "/api/auth",
+  maxAge: REFRESH_TOKEN_TTL_SECONDS * 1000,
+};
 
 export class AuthController {
   // Login
@@ -15,14 +28,36 @@ export class AuthController {
     }
 
     const response = await authService.login({ email, password });
-    return ResponseService
-    ({ ...response, res });
+
+    if (response.success && response.data?.refreshToken) {
+      res.cookie(REFRESH_COOKIE_NAME, response.data.refreshToken, refreshCookieOptions);
+      delete response.data.refreshToken;
+    }
+
+    return ResponseService({ ...response, res });
   }
 
   // Logout
   static async logout(req: IRequestUser, res: Response) {
     const token = req.headers.authorization?.split(" ")[1];
-    const response = await authService.logout(token);
+    const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
+    const response = await authService.logout(token, refreshToken);
+    res.clearCookie(REFRESH_COOKIE_NAME, { path: "/api/auth" });
+    return ResponseService({ ...response, res });
+  }
+
+  // Refresh
+  static async refresh(req: Request, res: Response) {
+    const refreshToken = req.cookies?.[REFRESH_COOKIE_NAME];
+    const response = await authService.refreshAccessToken(refreshToken);
+
+    if (response.success && response.data?.refreshToken) {
+      res.cookie(REFRESH_COOKIE_NAME, response.data.refreshToken, refreshCookieOptions);
+      delete response.data.refreshToken;
+    } else {
+      res.clearCookie(REFRESH_COOKIE_NAME, { path: "/api/auth" });
+    }
+
     return ResponseService({ ...response, res });
   }
 }

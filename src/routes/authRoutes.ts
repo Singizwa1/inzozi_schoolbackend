@@ -44,6 +44,26 @@ router.post("/auth/logout", authMiddleware, AuthController.logout);
 
 /**
  * @swagger
+ * /api/auth/refresh:
+ *   post:
+ *     summary: Exchange the refresh token for a new access + refresh token pair
+ *     description: >
+ *       No request body. The refresh token is read from the httpOnly
+ *       `refreshToken` cookie set by /auth/login - the browser sends it
+ *       automatically. A new rotated refresh token cookie is set on success.
+ *     tags: [Authentication]
+ *     responses:
+ *       200:
+ *         description: Token refreshed successfully
+ *       400:
+ *         description: Refresh token missing (no cookie sent)
+ *       401:
+ *         description: Invalid or expired refresh token
+ */
+router.post("/auth/refresh", AuthController.refresh);
+
+/**
+ * @swagger
  * /api/auth/forgot-password:
  *   post:
  *     summary: Request a password reset code

@@ -80,10 +80,10 @@ export const approveSchool = async (req: IRequestUser, res: Response) => {
   } catch (error: any) {
     console.error('Error approving school:', error);
     return ResponseService({
-      data: error.message || error,
-      status: 500,
+      data: null,
+      status: error.status || 500,
       success: false,
-      message: 'Failed to approve school',
+      message: error.message || 'Failed to approve school',
       res,
     });
   }
@@ -129,10 +129,10 @@ export const rejectSchool = async (req: IRequestUser, res: Response) => {
   } catch (error: any) {
     console.error('Error rejecting school:', error);
     return ResponseService({
-      data: error.message || error,
-      status: 500,
+      data: null,
+      status: error.status || 500,
       success: false,
-      message: 'Failed to reject school',
+      message: error.message || 'Failed to reject school',
       res,
     });
   }

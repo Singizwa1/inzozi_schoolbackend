@@ -120,10 +120,10 @@ export const handleApproveApplication = async (req: IRequestUser, res: Response)
     });
   } catch (error: any) {
     return ResponseService({
-      data: error.message,
-      status: 500,
+      data: null,
+      status: error.status || 500,
       success: false,
-      message: 'Failed to approve application',
+      message: error.message || 'Failed to approve application',
       res,
     });
   }
@@ -145,10 +145,10 @@ export const handleRejectApplication = async (req: IRequestUser, res: Response) 
     });
   } catch (error: any) {
     return ResponseService({
-      data: error.message,
-      status: 500,
+      data: null,
+      status: error.status || 500,
       success: false,
-      message: 'Failed to reject application',
+      message: error.message || 'Failed to reject application',
       res,
     });
   }

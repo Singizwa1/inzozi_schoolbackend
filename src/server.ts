@@ -1,5 +1,6 @@
 import express from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import { routers } from './routes';
 import { Database } from './database';
 import { config } from "dotenv";
@@ -15,8 +16,12 @@ redis.connect().catch(console.error);
 
 const app = express();
 
+const FRONTEND_URL = (process.env.FRONTEND_URL || "http://localhost:5173").replace(/\/$/, "");
 
-app.use(cors());
+// credentials:true + an explicit origin (not "*") are both required for the
+// browser to accept and send the httpOnly refresh-token cookie cross-origin.
+app.use(cors({ origin: FRONTEND_URL, credentials: true }));
+app.use(cookieParser());
 
 app.use(
   express.json({

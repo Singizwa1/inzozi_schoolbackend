@@ -12,6 +12,7 @@ import { Op, where as sequelizeWhere, literal } from 'sequelize';
 import { startTrial } from './subscriptionService';
 import { deleteFromStorage } from '../utils/uploadHelper';
 import { translateText, translateFields } from './translationService';
+import { AppError } from '../utils/errors';
 
 
 export const registerSchool = async (userId: string, data: ISchoolRegister) => {
@@ -33,6 +34,9 @@ export const approveSchool = async (schoolId: string, adminId: string) => {
   return sequelize.transaction(async (t) => {
     const school = await School.findByPk(schoolId, { transaction: t });
     if (!school) throw new Error('School not found');
+    if (school.status !== 'pending') {
+      throw new AppError(`This school has already been ${school.status}`, 409);
+    }
 
     school.status = 'approved';
     school.approvedBy = adminId;
@@ -57,6 +61,9 @@ export const approveSchool = async (schoolId: string, adminId: string) => {
 export const rejectSchool = async (schoolId: string, adminId: string, reason: string) => {
   const school = await School.findByPk(schoolId);
   if (!school) throw new Error('School not found');
+  if (school.status !== 'pending') {
+    throw new AppError(`This school has already been ${school.status}`, 409);
+  }
 
   school.status = 'rejected';
   school.approvedBy = adminId;
