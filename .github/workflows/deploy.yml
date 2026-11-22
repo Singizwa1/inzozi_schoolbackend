@@ -16,8 +16,16 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SSH_PORT }}
           script: |
+            set -e
             cd /var/www/inzozieduBackend/inzozi_schoolbackend
-            git pull origin main
+            # Deploys must be the only source of truth on this server - any
+            # uncommitted drift (e.g. a manual on-server fix that was never
+            # committed/pushed) gets discarded here rather than silently
+            # blocking every future deploy the way a plain `git pull` would.
+            # If the server ever needs a real fix, make it locally, commit,
+            # push, and let this workflow apply it - don't edit on the box.
+            git fetch origin main
+            git reset --hard origin/main
             npm install
             npm run build
             npm run db:migrate:prod

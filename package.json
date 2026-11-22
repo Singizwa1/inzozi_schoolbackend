@@ -16,7 +16,7 @@
   "scripts": {
     "dev": "cross-env NODE_ENV=development nodemon src/index.ts",
     "start": "node ./dist/index.js",
-    "build": "tsc && cpx \"src/templates/**/*\" dist/templates",
+    "build": "tsc && cpx \"src/templates/**/*\" dist/templates && cpx \"src/config/**/*.js\" dist/config",
     "lint": "eslint . --ext .ts",
     "lint-fix": "eslint . --ext .ts --fix",
     "format": "prettier --write \"src/**/*.{ts,js,json,md}\"",
