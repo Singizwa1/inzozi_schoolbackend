@@ -4,24 +4,12 @@ import { logger } from './logger';
 
 config();
 
-const host = process.env.REDIS_HOST || 'localhost';
-const portStr = process.env.REDIS_PORT || '6379';
-const password = process.env.REDIS_PASSWORD || '';
-const dbStr = process.env.REDIS_DB || '0';
+const url = process.env.REDIS_URL || 'redis://localhost:6379';
 
-const port = Number.isNaN(parseInt(portStr)) ? 6379 : parseInt(portStr);
-const database = Number.isNaN(parseInt(dbStr)) ? 0 : parseInt(dbStr);
-
-
-logger.info(`Redis configuration: ${host}:${port}, DB:${database}`);
+logger.info(`Redis configuration: ${url}`);
 
 export const redis = createClient({
-  socket: {
-    host,
-    port,
-  },
-  password: password ||'',
-  database,
+  url,
 });
 
 redis.on('connect', () => {
