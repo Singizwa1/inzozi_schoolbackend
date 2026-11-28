@@ -83,11 +83,15 @@ export const createStudentApplication = async (data: any) => {
 export const trackApplication = async (trackingCode: string, lang = 'en') => {
   const student = await Student.findOne({
     where: { trackingCode: normalizeTrackingCode(trackingCode) },
-    include: [{ model: School, as: 'school', attributes: ['schoolName'] }],
+    include: [
+      { model: School, as: 'school', attributes: ['schoolName'] },
+      { model: SchoolSpot, as: 'spot', attributes: ['combination'] },
+    ],
   });
   if (!student) throw new Error('Application not found');
 
   const school = student.get('school') as School | null;
+  const spot = student.get('spot') as SchoolSpot | null;
 
   return {
     id: student.id,
@@ -98,6 +102,7 @@ export const trackApplication = async (trackingCode: string, lang = 'en') => {
     level: student.level,
     yearOfStudy: student.yearOfStudy,
     studentType: student.studentType,
+    combination: spot?.combination ?? null,
     representerEmail: student.representerEmail,
     schoolName: school?.schoolName ?? null,
     rejectedReason: student.rejectedReason ? await translateText(student.rejectedReason, lang) : null,
@@ -119,7 +124,7 @@ export const getPendingApplications = async (managerId: string) => {
 
   return Student.findAll({
     where: { status: 'pending', schoolId },
-    include: ['application'],
+    include: ['application', { model: SchoolSpot, as: 'spot', attributes: ['combination'] }],
     order: [['createdAt', 'DESC']],
   });
 };
