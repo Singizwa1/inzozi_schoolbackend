@@ -344,25 +344,57 @@ export const createSchoolSpot = async (
   // Calculate available spots
   const availableSpots = data.totalSpots - occupiedSpots;
 
+  // Matches the unique_school_spot_per_category DB index exactly. Checked
+  // up front (rather than letting a double-submit/retry hit the DB
+  // constraint) so a retry gets one clear "already exists" error instead of
+  // either a confusing 500 or - for the multi-combination branch below - a
+  // partial create where some combinations saved before the duplicate one
+  // failed.
+  const findDuplicate = (combination: string[] | null) =>
+    SchoolSpot.findOne({
+      where: {
+        schoolId,
+        academicYear: data.academicYear,
+        level: data.level,
+        studentType: data.studentType,
+        yearofstudy: data.yearofstudy,
+        combination: combination ?? [],
+      },
+    });
+
   // If A-level with combinations, create separate spots for each combination
   if (data.level === 'A-level' && data.combination?.length) {
-    const createdSpots = await Promise.all(
-      data.combination.map(async (combo) => {
-        const spotData = {
-          ...data,
-          schoolId,
-          occupiedSpots,
-          registrationOpen,
-          availableSpots,
-          combination: [combo], 
-        };
-        return SchoolSpot.create(spotData);
-      })
-    );
-    return createdSpots;
+    const duplicates: string[] = [];
+    for (const combo of data.combination) {
+      if (await findDuplicate([combo])) duplicates.push(combo);
+    }
+    if (duplicates.length) {
+      throw new AppError(
+        `A spot already exists for: ${duplicates.join(', ')} (same academic year, year of study and student type)`,
+        409
+      );
+    }
+
+    return sequelize.transaction(async (t) => {
+      const createdSpots = await Promise.all(
+        data.combination!.map((combo) =>
+          SchoolSpot.create(
+            { ...data, schoolId, occupiedSpots, registrationOpen, availableSpots, combination: [combo] },
+            { transaction: t }
+          )
+        )
+      );
+      return createdSpots;
+    });
   }
 
-  
+  if (await findDuplicate(data.combination ?? null)) {
+    throw new AppError(
+      'A spot already exists for this level, student type, academic year and year of study',
+      409
+    );
+  }
+
   const schoolSpot = await SchoolSpot.create({
     ...data,
     schoolId,
@@ -393,6 +425,26 @@ export const updateSchoolSpot = async (schoolId: string, spotId: string, data: I
   const nextOccupiedSpots = data.occupiedSpots ?? spot.occupiedSpots;
   if (nextOccupiedSpots > nextTotalSpots) {
     throw new Error('occupiedSpots cannot exceed totalSpots');
+  }
+
+  // If this edit changes any of the fields in unique_school_spot_per_category,
+  // make sure it doesn't collide with a different, already-existing spot
+  // (the DB constraint would catch it anyway, but with a confusing raw error).
+  const nextIdentity = {
+    academicYear: data.academicYear ?? spot.academicYear,
+    level: data.level ?? spot.level,
+    studentType: data.studentType ?? spot.studentType,
+    yearofstudy: data.yearofstudy ?? spot.yearofstudy,
+    combination: data.combination ?? spot.combination ?? [],
+  };
+  const duplicate = await SchoolSpot.findOne({
+    where: { schoolId, id: { [Op.ne]: spotId }, ...nextIdentity },
+  });
+  if (duplicate) {
+    throw new AppError(
+      'Another spot already exists for this level, student type, academic year, year of study and combination',
+      409
+    );
   }
 
   return spot.update(data);

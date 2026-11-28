@@ -131,10 +131,10 @@ export const createSpot = async (req: IRequestUser, res: Response) => {
     });
   } catch (error: any) {
     return ResponseService({
-      data: error.message,
-      status: 500,
+      data: null,
+      status: error.status || 500,
       success: false,
-      message: 'Failed to create spot',
+      message: error.message || 'Failed to create spot',
       res,
     });
   }
@@ -176,10 +176,10 @@ export const updateSpot = async (req: IRequestUser, res: Response) => {
     });
   } catch (error: any) {
     return ResponseService({
-      data: error.message,
-      status: 500,
+      data: null,
+      status: error.status || 500,
       success: false,
-      message: 'Failed to update spot',
+      message: error.message || 'Failed to update spot',
       res,
     });
   }
